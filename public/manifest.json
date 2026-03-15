@@ -1,0 +1,20 @@
+{
+  "name": "FaithBuilt",
+  "short_name": "FaithBuilt",
+  "description": "Daily faith and discipline check-in — Discipline. Devotion. Daily.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0F0D0A",
+  "theme_color": "#0F0D0A",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["lifestyle", "health"],
+  "lang": "en"
+}

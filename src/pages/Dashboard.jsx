@@ -2,6 +2,9 @@ import { useAuth } from '../hooks/useAuth'
 import { useStreak } from '../hooks/useStreak'
 import { useHistory } from '../hooks/useHistory'
 import WeekRow from '../components/Streak/WeekRow'
+import MotivationalBanner from '../components/Dashboard/MotivationalBanner'
+import ChallengeCard from '../components/Dashboard/ChallengeCard'
+import CalendarGrid from '../components/Dashboard/CalendarGrid'
 
 const todayLabel = new Date().toLocaleDateString('en-US', {
   weekday: 'long', month: 'long', day: 'numeric',
@@ -10,14 +13,13 @@ const todayLabel = new Date().toLocaleDateString('en-US', {
 export default function Dashboard({ navigate, userId }) {
   const { user } = useAuth()
   const { streak } = useStreak(userId)
-  const { days, loading } = useHistory(userId)
+  const { days, calendarDays, loading } = useHistory(userId)
 
   const todayIsComplete = days.find(d => d.isToday)?.isComplete ?? false
   const displayName = user?.email?.split('@')[0] ?? 'Friend'
 
   return (
     <div className="app-shell">
-      {/* Top Bar */}
       <header className="top-bar">
         <div className="brand">
           <span className="brand-mark">✦</span>
@@ -26,12 +28,18 @@ export default function Dashboard({ navigate, userId }) {
       </header>
 
       <main className="main-content">
+        {/* Daily motivational banner */}
+        <MotivationalBanner />
+
         {/* Greeting */}
         <div className="dashboard-greeting">
           <p className="greeting-sub">Good to see you,</p>
           <h1 className="greeting-name">{displayName}</h1>
           <p className="greeting-date">{todayLabel}</p>
         </div>
+
+        {/* Today's Challenge */}
+        <ChallengeCard />
 
         {/* Streak Callout */}
         <div className="streak-callout">
@@ -77,6 +85,10 @@ export default function Dashboard({ navigate, userId }) {
             </button>
           )}
         </div>
+
+        {/* 30-Day Calendar */}
+        {!loading && <CalendarGrid calendarDays={calendarDays} />}
+
       </main>
     </div>
   )

@@ -6,8 +6,8 @@ import CompletionCelebration from '../components/CheckIn/CompletionCelebration'
 import StreakCounter from '../components/Streak/StreakCounter'
 import ReflectionJournal from '../components/Journal/ReflectionJournal'
 
-// One verse per day of the week (0 = Sunday … 6 = Saturday)
-const DAILY_VERSES = [
+// One verse per day of week (0 = Sunday … 6 = Saturday)
+export const DAILY_VERSES = [
   {
     text: 'Trust in the LORD with all your heart and lean not on your own understanding; in all your ways submit to him, and he will make your paths straight.',
     ref: 'Proverbs 3:5–6',
@@ -78,7 +78,7 @@ export default function DailyCheckIn({ navigate, userId }) {
           <p className="today-date">{todayLabel}</p>
         </div>
 
-        {/* Daily Scripture Verse */}
+        {/* Daily Scripture Verse — always visible */}
         <div className="verse-card">
           <p className="verse-text">"{todayVerse.text}"</p>
           <p className="verse-reference">— {todayVerse.ref}</p>
@@ -91,10 +91,11 @@ export default function DailyCheckIn({ navigate, userId }) {
           totalCount={totalCount}
         />
 
-        {/* Pillars or Celebration */}
+        {/* Full celebration screen when all pillars done */}
         {allCompleted ? (
           <CompletionCelebration
             streak={streak.current_streak}
+            verse={todayVerse}
             onBack={() => navigate('dashboard')}
           />
         ) : (
@@ -113,7 +114,7 @@ export default function DailyCheckIn({ navigate, userId }) {
           </>
         )}
 
-        {/* Journal */}
+        {/* Journal always visible */}
         <ReflectionJournal userId={userId} />
       </main>
     </div>

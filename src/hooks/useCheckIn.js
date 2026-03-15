@@ -44,7 +44,7 @@ export const PILLARS = [
   },
 ]
 
-const ALL_TASK_KEYS = PILLARS.flatMap(p => p.tasks.map(t => t.key))
+export const ALL_TASK_KEYS = PILLARS.flatMap(p => p.tasks.map(t => t.key))
 
 export function useCheckIn(userId) {
   const [completions, setCompletions] = useState({})
@@ -91,6 +91,14 @@ export function useCheckIn(userId) {
   const allCompleted = ALL_TASK_KEYS.every(key => completions[key] === true)
   const completedCount = ALL_TASK_KEYS.filter(key => completions[key] === true).length
   const totalCount = ALL_TASK_KEYS.length
+
+  // Update PWA app-icon badge
+  useEffect(() => {
+    if (loading) return
+    if ('setAppBadge' in navigator) {
+      allCompleted ? navigator.clearAppBadge?.() : navigator.setAppBadge?.(1)
+    }
+  }, [allCompleted, loading])
 
   return { completions, loading, toggleTask, allCompleted, completedCount, totalCount }
 }
