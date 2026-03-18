@@ -12,12 +12,13 @@ export function useAuth() {
   const [profile, setProfile]       = useState(null)
   const [loading, setLoading]       = useState(true)
   const [profileLoading, setProfileLoading] = useState(true) // true until first fetch completes
+  const [profileFetched, setProfileFetched] = useState(false) // true after first fetch completes
   const [authEvent, setAuthEvent]   = useState(null) // e.g. 'PASSWORD_RECOVERY'
 
   // ── Fetch profile (onboarding_done, display_name, etc.) ────────────
   async function fetchProfile(uid) {
     // Must call setProfileLoading(false) on every exit path — it starts true.
-    if (!uid) { setProfile(null); setProfileLoading(false); return }
+    if (!uid) { setProfile(null); setProfileLoading(false); setProfileFetched(true); return }
     setProfileLoading(true)
     const { data, error } = await supabase
       .from('profiles')
@@ -34,6 +35,7 @@ export function useAuth() {
       if (data?.onboarding_done) localStorage.setItem('fb_onboarding_done', '1')
     }
     setProfileLoading(false)
+    setProfileFetched(true)
   }
 
   // ── Session bootstrap ───────────────────────────────────────────────
@@ -138,6 +140,7 @@ export function useAuth() {
     profile,
     loading,
     profileLoading,
+    profileFetched,
     authEvent,
     signUp,
     signIn,

@@ -39,6 +39,7 @@ export default function App() {
     profile,
     loading,
     profileLoading,
+    profileFetched,
     authEvent,
     resetPassword,
     markOnboardingDone,
@@ -90,7 +91,7 @@ export default function App() {
 
   const onboardingDone =
     localStorage.getItem('fb_onboarding_done') === '1' ||
-    profile?.onboarding_done === true
+    (profileFetched && profile?.onboarding_done === true)
 
   console.log('[FaithBuilt] onboarding check:', {
     localStorage: localStorage.getItem('fb_onboarding_done'),
