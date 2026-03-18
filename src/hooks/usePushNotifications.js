@@ -62,9 +62,9 @@ export async function subscribeToPush(userId) {
     console.log('[FaithBuilt] PushManager subscription created:', pushSub.endpoint.slice(0, 60) + '…')
 
     // 5. Persist to Supabase
-    const { data: { session } } = await supabase.auth.getSession()
-    console.log('[FaithBuilt] Session at upsert time:', session ? session.user.id : 'NO SESSION')
-    if (!session) {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    console.log('[FaithBuilt] Session:', session?.user?.id ?? 'NONE', sessionError ?? '')
+    if (!session?.user) {
       await pushSub.unsubscribe()
       return { subscription: null, error: new Error('No active session') }
     }
@@ -75,7 +75,7 @@ export async function subscribeToPush(userId) {
         { onConflict: 'user_id', ignoreDuplicates: false }
       )
       .select()
-    console.log('[FaithBuilt] Upsert result - data:', data, 'error:', error ? JSON.stringify(error) : 'none')
+    console.log('[FaithBuilt] Upsert result - data:', JSON.stringify(data), 'error:', error ? JSON.stringify(error) : 'none')
 
     if (error) {
       // Roll back the browser-side subscription so state stays consistent
