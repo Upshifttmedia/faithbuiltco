@@ -62,20 +62,23 @@ export async function subscribeToPush(userId) {
     console.log('[FaithBuilt] PushManager subscription created:', pushSub.endpoint.slice(0, 60) + '…')
 
     // 5. Persist to Supabase
-    const { error } = await supabase
+    console.log('[FaithBuilt] Current user:', userId)
+    const { data: upsertData, error } = await supabase
       .from('push_subscriptions')
       .upsert(
         { user_id: userId, subscription: pushSub.toJSON() },
         { onConflict: 'user_id' }
       )
+      .select()
 
     if (error) {
-      console.error('[FaithBuilt] Supabase upsert error:', error)
+      console.error('[FaithBuilt] Supabase upsert error:', JSON.stringify(error))
       // Roll back the browser-side subscription so state stays consistent
       await pushSub.unsubscribe()
       return { subscription: null, error }
     }
 
+    console.log('[FaithBuilt] Upsert success:', upsertData)
     console.log('[FaithBuilt] Subscription saved to Supabase. Push is active.')
     return { subscription: pushSub, error: null }
   } catch (err) {
