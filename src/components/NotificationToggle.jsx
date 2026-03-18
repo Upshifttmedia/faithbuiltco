@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import {
   subscribeToPush,
@@ -15,14 +15,19 @@ export default function NotificationToggle({ userId }) {
   const [subscribed, setSubscribed] = useState(false)
   const [loading,    setLoading]    = useState(true)
   const [error,      setError]      = useState('')
+  // Guard that prevents the mount-check useEffect from firing while
+  // subscribeToPush is in flight. Without this, the state update inside
+  // handleToggle (setSubscribed(true)) re-triggers the effect, which sees
+  // the new browser subscription, runs its checks, and can call
+  // unsubscribeFromPush — deleting the row that was just written.
+  const isSubscribing = useRef(false)
 
-  // Check subscription status on mount.
-  // Must verify BOTH the browser PushManager subscription AND the Supabase row.
-  // Using the browser alone is unreliable: a stale browser subscription from a
-  // prior session causes subscribed=true on mount, so the next click calls
-  // unsubscribeFromPush and silently deletes the row that was just written.
+  // Check subscription status on mount (and when userId first becomes available).
+  // Only re-runs when userId changes — not on every state update.
   useEffect(() => {
     if (!PUSH_SUPPORTED || !userId) { setLoading(false); return }
+    // Skip re-check while a subscribe operation is in progress.
+    if (isSubscribing.current) return
     Promise.all([
       getCurrentSubscription(),
       supabase
@@ -49,7 +54,9 @@ export default function NotificationToggle({ userId }) {
         setSubscribed(false)
       }
     } else {
+      isSubscribing.current = true
       const { subscription, error } = await subscribeToPush(userId)
+      isSubscribing.current = false
       if (error) {
         // Surface the real error so it's visible during debugging
         setError(
