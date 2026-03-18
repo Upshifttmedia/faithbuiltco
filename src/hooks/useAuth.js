@@ -41,6 +41,14 @@ export function useAuth() {
   // ── Session bootstrap ───────────────────────────────────────────────
   const profileFetchedOnce = { current: false }
   useEffect(() => {
+    // If localStorage already has onboarding done, set profile optimistically
+    // so the app never flashes onboarding for returning users
+    if (localStorage.getItem('fb_onboarding_done') === '1') {
+      setProfile(prev => ({ ...(prev ?? {}), onboarding_done: true }))
+      setProfileFetched(true)
+      setProfileLoading(false)
+    }
+
     // Handle email-confirmation / password-reset links with a token in the URL
     const params    = new URLSearchParams(window.location.search)
     const tokenHash = params.get('token_hash')
