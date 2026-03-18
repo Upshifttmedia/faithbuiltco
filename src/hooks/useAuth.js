@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
+// ── Canonical app URL ────────────────────────────────────────────────────
+// VITE_SITE_URL must be set in Vercel environment variables to
+// https://faithbuiltco.vercel.app so that auth emails always link back
+// to the correct site regardless of where the code runs.
+const SITE_URL = import.meta.env.VITE_SITE_URL || window.location.origin
+
 export function useAuth() {
   const [user, setUser]             = useState(null)
   const [profile, setProfile]       = useState(null)
@@ -69,8 +75,19 @@ export function useAuth() {
       password,
       options: {
         data: { display_name: displayName },
-        emailRedirectTo: window.location.origin,
+        // Always redirect back to the production URL so confirmation
+        // emails work correctly even if Supabase Site URL is stale.
+        emailRedirectTo: SITE_URL,
       },
+    })
+    return { data, error }
+  }
+
+  async function resendConfirmation(email) {
+    const { data, error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: { emailRedirectTo: SITE_URL },
     })
     return { data, error }
   }
@@ -89,8 +106,11 @@ export function useAuth() {
   }
 
   async function forgotPassword(email) {
+    // redirectTo must be whitelisted in Supabase dashboard:
+    // Authentication → URL Configuration → Redirect URLs
+    // Add: https://faithbuiltco.vercel.app
     const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}?type=recovery`,
+      redirectTo: SITE_URL,
     })
     return { data, error }
   }
@@ -117,6 +137,7 @@ export function useAuth() {
     signOut,
     forgotPassword,
     resetPassword,
+    resendConfirmation,
     markOnboardingDone,
   }
 }

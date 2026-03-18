@@ -46,3 +46,19 @@ self.addEventListener('notificationclick', e => {
       })
   )
 })
+
+// ── Web Push ─────────────────────────────────────────────────────────────
+// Receive a server-sent push payload and display a native notification.
+self.addEventListener('push', e => {
+  const data = e.data?.json() || {}
+  e.waitUntil(
+    self.registration.showNotification(data.title || 'FaithBuilt', {
+      body:      data.body || 'Your alignment starts now. Open FaithBuilt.',
+      icon:      '/icon-192.png',
+      badge:     '/icon-192.png',
+      tag:       data.tag  || 'faithbuilt-push',
+      renotify:  true,
+      data:      { url: data.url || '/' },
+    })
+  )
+})

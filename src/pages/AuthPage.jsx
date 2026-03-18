@@ -6,7 +6,7 @@ import { useAuth } from '../hooks/useAuth'
 
 export default function AuthPage() {
   const [mode, setMode] = useState('login') // 'login' | 'signup' | 'forgot'
-  const { signIn, signUp, forgotPassword } = useAuth()
+  const { signIn, signUp, forgotPassword, resendConfirmation } = useAuth()
 
   return (
     <div className="auth-page">
@@ -22,11 +22,13 @@ export default function AuthPage() {
             onLogin={signIn}
             onSwitch={() => setMode('signup')}
             onForgot={() => setMode('forgot')}
+            onResend={resendConfirmation}
           />
         )}
         {mode === 'signup' && (
           <SignupForm
             onSignup={signUp}
+            onResend={resendConfirmation}
             onSwitch={() => setMode('login')}
           />
         )}

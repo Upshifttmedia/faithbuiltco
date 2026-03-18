@@ -1,6 +1,7 @@
 import { useAuth } from '../hooks/useAuth'
 import { useStreak } from '../hooks/useStreak'
 import { useHistory } from '../hooks/useHistory'
+import NotificationToggle from '../components/NotificationToggle'
 
 export default function Profile({ navigate }) {
   const { user, signOut } = useAuth()
@@ -70,6 +71,12 @@ export default function Profile({ navigate }) {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Notifications */}
+        <div className="profile-section">
+          <p className="profile-section-title">Notifications</p>
+          <NotificationToggle userId={user?.id} />
         </div>
 
         {/* Sign Out */}

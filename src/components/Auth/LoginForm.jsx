@@ -1,18 +1,38 @@
 import { useState } from 'react'
 
-export default function LoginForm({ onLogin, onSwitch, onForgot }) {
+// Supabase returns this exact string when email hasn't been confirmed yet
+const UNCONFIRMED_MSG = 'Email not confirmed'
+
+export default function LoginForm({ onLogin, onSwitch, onForgot, onResend }) {
   const [email, setEmail]     = useState('')
   const [password, setPassword] = useState('')
   const [error, setError]     = useState('')
   const [loading, setLoading] = useState(false)
+  const [needsConfirm, setNeedsConfirm]   = useState(false)
+  const [resendLoading, setResendLoading] = useState(false)
+  const [resendSent, setResendSent]       = useState(false)
 
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
+    setNeedsConfirm(false)
     setLoading(true)
     const { error } = await onLogin(email, password)
-    if (error) setError(error.message)
+    if (error) {
+      if (error.message.includes(UNCONFIRMED_MSG)) {
+        setNeedsConfirm(true)
+      } else {
+        setError(error.message)
+      }
+    }
     setLoading(false)
+  }
+
+  async function handleResend() {
+    setResendLoading(true)
+    await onResend?.(email)
+    setResendLoading(false)
+    setResendSent(true)
   }
 
   return (
@@ -21,6 +41,29 @@ export default function LoginForm({ onLogin, onSwitch, onForgot }) {
       <p className="auth-subtitle">Sign in to continue your journey</p>
 
       {error && <div className="auth-error">{error}</div>}
+
+      {needsConfirm && (
+        <div className="auth-confirm-notice">
+          <p>
+            <strong>Your email isn't confirmed yet.</strong> Check your inbox for the
+            confirmation link we sent when you signed up.
+          </p>
+          {resendSent ? (
+            <p className="auth-confirm-resent">
+              ✓ Resent! Check your inbox (and spam folder).
+            </p>
+          ) : (
+            <button
+              type="button"
+              className="link-btn"
+              onClick={handleResend}
+              disabled={resendLoading}
+            >
+              {resendLoading ? 'Sending…' : 'Resend confirmation email'}
+            </button>
+          )}
+        </div>
+      )}
 
       <div className="field-group">
         <label className="field-label">Email</label>
