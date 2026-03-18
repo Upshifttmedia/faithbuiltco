@@ -101,9 +101,10 @@ export default function App() {
     return <ResetPassword onResetPassword={resetPassword} />
   }
 
-  const onboardingDone =
-    localStorage.getItem('fb_onboarding_done') === '1' ||
-    profile?.onboarding_done === true
+  const lsValue = localStorage.getItem('fb_onboarding_done')
+  const dbValue = profile?.onboarding_done
+  console.log('[FaithBuilt] onboarding gate:', { lsValue, dbValue })
+  const onboardingDone = lsValue === '1' || dbValue === true
 
   console.log('[FaithBuilt] routing decision:', { profileFetched, onboardingDone, page })
 

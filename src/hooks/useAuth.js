@@ -32,7 +32,7 @@ export function useAuth() {
     } else {
       setProfile(data ?? null)
       // Mirror to localStorage so the onboarding check survives a failed fetch.
-      if (data?.onboarding_done) localStorage.setItem('fb_onboarding_done', '1')
+      if (data?.onboarding_done === true) localStorage.setItem('fb_onboarding_done', '1')
     }
     setProfileLoading(false)
     setProfileFetched(true)
@@ -86,8 +86,8 @@ export function useAuth() {
       }
       if (event === 'SIGNED_OUT') {
         setProfile(null)
-        setProfileFetched(false)
-        setProfileLoading(true)
+        setProfileFetched(true)
+        setProfileLoading(false)
         profileFetchedOnce.current = false
       }
       if (event === 'PASSWORD_RECOVERY')  setAuthEvent('PASSWORD_RECOVERY')
