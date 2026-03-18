@@ -56,23 +56,32 @@ export default function NotificationToggle() {
         <div style={{ color: '#ffffff', fontWeight: '600', fontSize: '15px' }}>Daily Reminders</div>
         <div style={{ color: '#888', fontSize: '13px', marginTop: '2px' }}>Get a morning prompt and evening reflection nudge.</div>
       </div>
-      <button
+      <div
         onClick={handleToggle}
-        disabled={loading}
         style={{
+          width: '51px',
+          height: '31px',
+          borderRadius: '15.5px',
           background: enabled ? '#4DD9C0' : '#333',
-          color: enabled ? '#000' : '#888',
-          border: 'none',
-          borderRadius: '20px',
-          padding: '6px 16px',
-          fontSize: '13px',
-          fontWeight: '600',
+          position: 'relative',
           cursor: loading ? 'not-allowed' : 'pointer',
-          transition: 'all 0.2s'
+          transition: 'background 0.2s',
+          flexShrink: 0,
+          opacity: loading ? 0.6 : 1,
         }}
       >
-        {loading ? '...' : enabled ? 'On' : 'Off'}
-      </button>
+        <div style={{
+          position: 'absolute',
+          top: '2px',
+          left: enabled ? '22px' : '2px',
+          width: '27px',
+          height: '27px',
+          borderRadius: '50%',
+          background: '#ffffff',
+          transition: 'left 0.2s',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+        }} />
+      </div>
     </div>
   )
 }
