@@ -11,21 +11,28 @@ export function useAuth() {
   const [user, setUser]             = useState(null)
   const [profile, setProfile]       = useState(null)
   const [loading, setLoading]       = useState(true)
-  const [profileLoading, setProfileLoading] = useState(false)
+  const [profileLoading, setProfileLoading] = useState(true) // true until first fetch completes
   const [authEvent, setAuthEvent]   = useState(null) // e.g. 'PASSWORD_RECOVERY'
 
   // ── Fetch profile (onboarding_done, display_name, etc.) ────────────
   async function fetchProfile(uid) {
-    if (!uid) { setProfile(null); return }
+    // Must call setProfileLoading(false) on every exit path — it starts true.
+    if (!uid) { setProfile(null); setProfileLoading(false); return }
     setProfileLoading(true)
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('profiles')
       .select('onboarding_done, commitment_days, display_name, identity_statement')
       .eq('id', uid)
       .maybeSingle()
-    setProfile(data ?? null)
-    // Mirror to localStorage so we don't need a network round-trip next open
-    if (data?.onboarding_done) localStorage.setItem('fb_onboarding_done', '1')
+    if (error) {
+      // Log but don't overwrite profile state on a failed fetch — a stale
+      // profile is safer than a null one that wipes onboarding_done.
+      console.error('[FaithBuilt] fetchProfile error:', JSON.stringify(error))
+    } else {
+      setProfile(data ?? null)
+      // Mirror to localStorage so the onboarding check survives a failed fetch.
+      if (data?.onboarding_done) localStorage.setItem('fb_onboarding_done', '1')
+    }
     setProfileLoading(false)
   }
 
