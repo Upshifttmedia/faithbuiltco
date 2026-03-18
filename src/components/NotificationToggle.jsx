@@ -12,9 +12,24 @@ export default function NotificationToggle() {
         setLoading(false)
         return
       }
-      const reg = await navigator.serviceWorker.ready
-      const sub = await reg.pushManager.getSubscription()
-      setEnabled(!!sub)
+      try {
+        const reg = await navigator.serviceWorker.ready
+        const sub = await reg.pushManager.getSubscription()
+        if (!sub) { setEnabled(false); setLoading(false); return }
+
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session) { setEnabled(false); setLoading(false); return }
+
+        const { data } = await supabase
+          .from('push_subscriptions')
+          .select('id')
+          .eq('user_id', session.user.id)
+          .single()
+
+        setEnabled(!!data)
+      } catch {
+        setEnabled(false)
+      }
       setLoading(false)
     }
     checkStatus()
