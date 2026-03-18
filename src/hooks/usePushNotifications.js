@@ -69,8 +69,9 @@ export async function subscribeToPush(userId) {
       .from('push_subscriptions')
       .upsert(
         { user_id: userId, subscription: pushSub.toJSON() },
-        { onConflict: 'user_id' }
+        { onConflict: 'user_id', ignoreDuplicates: false }
       )
+      .select()
     console.log('[FaithBuilt] Upsert result - data:', data, 'error:', error ? JSON.stringify(error) : 'none')
 
     if (error) {
