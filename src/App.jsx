@@ -70,6 +70,15 @@ export default function App() {
     localStorage.setItem(LAST_OPEN_KEY, today)
   }, [user])
 
+  // Mirror onboarding_done to localStorage as soon as it's confirmed from DB.
+  // Covers users who completed onboarding on another device/browser where
+  // localStorage was never set — ensures the optimistic check works on next load.
+  useEffect(() => {
+    if (profileFetched && profile?.onboarding_done) {
+      localStorage.setItem('fb_onboarding_done', '1')
+    }
+  }, [profileFetched, profile])
+
   const { showPrompt, reminderTime, requestAndSave, dismissPrompt, maybeTriggerPrompt } =
     useNotifications(user?.id)
 
