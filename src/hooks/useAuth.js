@@ -84,7 +84,12 @@ export function useAuth() {
           fetchProfile(u?.id)
         }
       }
-      if (event === 'SIGNED_OUT')         setProfile(null)
+      if (event === 'SIGNED_OUT') {
+        setProfile(null)
+        setProfileFetched(false)
+        setProfileLoading(true)
+        profileFetchedOnce.current = false
+      }
       if (event === 'PASSWORD_RECOVERY')  setAuthEvent('PASSWORD_RECOVERY')
       if (event === 'SIGNED_IN' && authEvent === 'PASSWORD_RECOVERY') setAuthEvent(null)
     })
