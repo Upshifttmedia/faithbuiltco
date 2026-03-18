@@ -20,7 +20,7 @@ export function useAuth() {
     setProfileLoading(true)
     const { data } = await supabase
       .from('profiles')
-      .select('onboarding_done, commitment_days, display_name, identity_statement')
+      .select('onboarding_done, commitment_days, display_name')
       .eq('id', uid)
       .maybeSingle()
     setProfile(data ?? null)
