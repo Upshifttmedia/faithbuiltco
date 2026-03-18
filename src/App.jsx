@@ -92,6 +92,13 @@ export default function App() {
     localStorage.getItem('fb_onboarding_done') === '1' ||
     profile?.onboarding_done === true
 
+  console.log('[FaithBuilt] onboarding check:', {
+    localStorage: localStorage.getItem('fb_onboarding_done'),
+    profileOnboardingDone: profile?.onboarding_done,
+    profileLoading: profileLoading,
+    profile: profile
+  })
+
   if (!onboardingDone) {
     return (
       <Onboarding
