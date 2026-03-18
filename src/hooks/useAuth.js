@@ -146,8 +146,16 @@ export function useAuth() {
   }
 
   // Call this after onboarding completes so App can update without a page reload
-  function markOnboardingDone() {
+  async function markOnboardingDone() {
     setProfile(prev => ({ ...(prev ?? {}), onboarding_done: true }))
+    localStorage.setItem('fb_onboarding_done', '1')
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.user?.id) {
+      await supabase
+        .from('profiles')
+        .update({ onboarding_done: true })
+        .eq('id', session.user.id)
+    }
   }
 
   return {
