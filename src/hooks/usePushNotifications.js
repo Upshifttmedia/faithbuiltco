@@ -18,28 +18,50 @@ function urlBase64ToUint8Array(base64String) {
  * Returns { subscription, error }
  */
 export async function subscribeToPush(userId) {
+  const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY
+  console.log('[FaithBuilt] subscribeToPush called', {
+    userId,
+    vapidKeyPresent: !!vapidKey,
+    vapidKeyPrefix: vapidKey ? vapidKey.slice(0, 12) + '…' : 'MISSING',
+    pushManagerAvailable: 'PushManager' in window,
+    serviceWorkerAvailable: 'serviceWorker' in navigator,
+    notificationPermission: typeof Notification !== 'undefined'
+      ? Notification.permission : 'unavailable',
+  })
+
   try {
-    // 1. Permission
+    // 1. Fast-fail if the VAPID key is missing — avoids a misleading
+    //    permission prompt that would then fail at subscription time.
+    if (!vapidKey) {
+      const err = new Error(
+        'VITE_VAPID_PUBLIC_KEY is not set. Add it to .env and restart the dev server.'
+      )
+      console.error('[FaithBuilt] subscribeToPush error:', err)
+      return { subscription: null, error: err }
+    }
+
+    // 2. Permission
+    console.log('[FaithBuilt] Requesting notification permission…')
     const permission = await Notification.requestPermission()
+    console.log('[FaithBuilt] Permission result:', permission)
     if (permission !== 'granted') {
       return { subscription: null, error: new Error('Notification permission denied.') }
     }
 
-    // 2. Service-worker registration
+    // 3. Service-worker registration
+    console.log('[FaithBuilt] Waiting for service worker…')
     const reg = await navigator.serviceWorker.ready
+    console.log('[FaithBuilt] Service worker ready:', reg.scope)
 
-    // 3. Subscribe via PushManager
-    const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY
-    if (!vapidKey) {
-      return { subscription: null, error: new Error('VITE_VAPID_PUBLIC_KEY is not set.') }
-    }
-
+    // 4. Subscribe via PushManager
+    console.log('[FaithBuilt] Subscribing via PushManager…')
     const pushSub = await reg.pushManager.subscribe({
       userVisibleOnly:      true,
       applicationServerKey: urlBase64ToUint8Array(vapidKey),
     })
+    console.log('[FaithBuilt] PushManager subscription created:', pushSub.endpoint.slice(0, 60) + '…')
 
-    // 4. Persist to Supabase
+    // 5. Persist to Supabase
     const { error } = await supabase
       .from('push_subscriptions')
       .upsert(
@@ -48,13 +70,16 @@ export async function subscribeToPush(userId) {
       )
 
     if (error) {
+      console.error('[FaithBuilt] Supabase upsert error:', error)
       // Roll back the browser-side subscription so state stays consistent
       await pushSub.unsubscribe()
       return { subscription: null, error }
     }
 
+    console.log('[FaithBuilt] Subscription saved to Supabase. Push is active.')
     return { subscription: pushSub, error: null }
   } catch (err) {
+    console.error('[FaithBuilt] subscribeToPush error:', err)
     return { subscription: null, error: err }
   }
 }

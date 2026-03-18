@@ -39,10 +39,11 @@ export default function NotificationToggle({ userId }) {
     } else {
       const { subscription, error } = await subscribeToPush(userId)
       if (error) {
+        // Surface the real error so it's visible during debugging
         setError(
           error.message.includes('denied')
             ? 'Notifications are blocked in your browser settings.'
-            : 'Could not enable reminders. Try again.'
+            : error.message
         )
       } else if (subscription) {
         setSubscribed(true)
