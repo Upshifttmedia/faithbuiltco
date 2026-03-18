@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
+import { getLocalDate } from '../lib/dateUtils'
 
 export const PILLARS = [
   {
     key: 'faith',
     label: 'Faith',
     icon: '✦',
-    color: '#C9A84C',
     tasks: [
       { key: 'faith_prayer', label: 'Morning Prayer' },
       { key: 'faith_scripture', label: 'Scripture Reading' },
@@ -16,7 +16,6 @@ export const PILLARS = [
     key: 'body',
     label: 'Body',
     icon: '⚡',
-    color: '#C9A84C',
     tasks: [
       { key: 'body_exercise', label: 'Exercise' },
       { key: 'body_nutrition', label: 'Healthy Eating' },
@@ -26,7 +25,6 @@ export const PILLARS = [
     key: 'mind',
     label: 'Mind',
     icon: '◈',
-    color: '#C9A84C',
     tasks: [
       { key: 'mind_reading', label: 'Reading / Learning' },
       { key: 'mind_gratitude', label: 'Gratitude Practice' },
@@ -36,7 +34,6 @@ export const PILLARS = [
     key: 'stewardship',
     label: 'Stewardship',
     icon: '◆',
-    color: '#C9A84C',
     tasks: [
       { key: 'stewardship_finances', label: 'Financial Review' },
       { key: 'stewardship_service', label: 'Acts of Service' },
@@ -49,10 +46,13 @@ export const ALL_TASK_KEYS = PILLARS.flatMap(p => p.tasks.map(t => t.key))
 export function useCheckIn(userId) {
   const [completions, setCompletions] = useState({})
   const [loading, setLoading] = useState(true)
-  const today = new Date().toISOString().split('T')[0]
+
+  // ✅ LOCAL date — prevents UTC midnight flipping the date for non-UTC users
+  const today = getLocalDate()
 
   const fetchCompletions = useCallback(async () => {
     if (!userId) return
+
     const { data } = await supabase
       .from('daily_completions')
       .select('task_key, completed')
@@ -60,7 +60,8 @@ export function useCheckIn(userId) {
       .eq('completion_date', today)
 
     const map = {}
-    if (data) data.forEach(row => { map[row.task_key] = row.completed })
+    // Only set tasks that are explicitly true — no rows = fresh day, all unchecked
+    if (data) data.forEach(row => { map[row.task_key] = row.completed === true })
     setCompletions(map)
     setLoading(false)
   }, [userId, today])
@@ -71,8 +72,7 @@ export function useCheckIn(userId) {
 
   async function toggleTask(pillarKey, taskKey) {
     if (!userId) return
-    const current = completions[taskKey] || false
-    const next = !current
+    const next = !(completions[taskKey] === true)
 
     setCompletions(prev => ({ ...prev, [taskKey]: next }))
 
@@ -88,11 +88,19 @@ export function useCheckIn(userId) {
       }, { onConflict: 'user_id,completion_date,task_key' })
   }
 
-  const allCompleted = ALL_TASK_KEYS.every(key => completions[key] === true)
-  const completedCount = ALL_TASK_KEYS.filter(key => completions[key] === true).length
+  // Per-pillar completion status
+  const pillarStatus = PILLARS.map(p => ({
+    key: p.key,
+    complete: p.tasks.every(t => completions[t.key] === true),
+    count: p.tasks.filter(t => completions[t.key] === true).length,
+  }))
+
+  const completedPillars = pillarStatus.filter(p => p.complete).length
+  const allCompleted = completedPillars === PILLARS.length
+  const completedCount = ALL_TASK_KEYS.filter(k => completions[k] === true).length
   const totalCount = ALL_TASK_KEYS.length
 
-  // Update PWA app-icon badge
+  // PWA badge
   useEffect(() => {
     if (loading) return
     if ('setAppBadge' in navigator) {
@@ -100,5 +108,5 @@ export function useCheckIn(userId) {
     }
   }, [allCompleted, loading])
 
-  return { completions, loading, toggleTask, allCompleted, completedCount, totalCount }
+  return { completions, loading, toggleTask, allCompleted, completedCount, completedPillars, totalCount, pillarStatus }
 }

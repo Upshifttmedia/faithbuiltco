@@ -1,9 +1,9 @@
 import { useState } from 'react'
 
-export default function LoginForm({ onLogin, onSwitch }) {
-  const [email, setEmail] = useState('')
+export default function LoginForm({ onLogin, onSwitch, onForgot }) {
+  const [email, setEmail]     = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
+  const [error, setError]     = useState('')
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e) {
@@ -46,6 +46,9 @@ export default function LoginForm({ onLogin, onSwitch }) {
           required
           autoComplete="current-password"
         />
+        <button type="button" className="link-btn forgot-link" onClick={onForgot}>
+          Forgot password?
+        </button>
       </div>
 
       <button type="submit" className="btn-primary" disabled={loading}>

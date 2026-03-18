@@ -1204,6 +1204,10 @@ textarea { resize: vertical; }
 }
 .cal-dot--done .cal-dot-num { color: #0F0D0A; font-weight: 800; }
 .cal-dot--today:not(.cal-dot--done) .cal-dot-num { color: var(--gold); }
+.cal-dot--partial {
+  background: rgba(201,168,76,0.18);
+  border-color: rgba(201,168,76,0.35);
+}
 
 /* ─── Notification Prompt ──────────────────────── */
 .prompt-overlay {
@@ -1431,4 +1435,1297 @@ textarea { resize: vertical; }
   font-weight: 700;
   color: var(--text-muted);
   min-width: 12px;
+}
+
+/* ─── Forgot Password link ──────────────────────── */
+.forgot-link {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: right;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.forgot-link:hover { color: var(--gold); }
+
+/* ─── Reset Password overlay ────────────────────── */
+.reset-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+/* ─── Pillar notes ──────────────────────────────── */
+.pillar-note-wrap {
+  position: relative;
+  margin-top: 12px;
+}
+.pillar-note {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.85rem;
+  color: var(--text);
+  line-height: 1.5;
+  resize: none;
+  transition: border-color 0.2s;
+}
+.pillar-note:focus { border-color: var(--gold-dim); }
+.pillar-note::placeholder { color: var(--text-muted); }
+.pillar-note-saving {
+  position: absolute;
+  right: 8px;
+  bottom: 6px;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+/* ─── History partial credit ────────────────────── */
+.history-card--partial {
+  border-color: rgba(201,168,76,0.2);
+}
+.history-status-ring--done {
+  border-color: var(--gold);
+  background: rgba(201,168,76,0.12);
+}
+.history-partial {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--gold-dim);
+}
+.history-pillar-icon--dim {
+  opacity: 0.3;
+}
+
+/* ─── Onboarding ────────────────────────────────── */
+.onboarding-screen {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  background: var(--bg);
+  text-align: center;
+}
+.onboard-dots {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 48px;
+}
+.onboard-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: background 0.3s, transform 0.3s;
+}
+.onboard-dot--active {
+  background: var(--gold);
+  transform: scale(1.3);
+}
+.onboard-slide {
+  max-width: 340px;
+  margin-bottom: 48px;
+}
+.onboard-icon {
+  font-size: 3rem;
+  margin-bottom: 24px;
+  color: var(--gold);
+}
+.onboard-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 14px;
+  letter-spacing: -0.02em;
+}
+.onboard-body {
+  font-size: 1rem;
+  color: var(--text-muted);
+  line-height: 1.65;
+}
+.onboard-btn {
+  width: 100%;
+  max-width: 320px;
+}
+.onboard-back {
+  margin-top: 16px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+/* Commitment screen */
+.onboarding-commit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 360px;
+}
+.commit-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  margin: 8px 0 16px;
+}
+.commit-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--border);
+  background: var(--bg-card);
+  transition: border-color 0.2s, background 0.2s;
+}
+.commit-option--active {
+  border-color: var(--gold);
+  background: var(--done-bg);
+}
+.commit-days {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.commit-sub {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* ─── Dashboard pillar preview cards ────────────── */
+.pillar-previews {
+  margin-top: 8px;
+}
+.pillar-preview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 8px;
+}
+.pillar-preview-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: border-color 0.18s, background 0.18s;
+  user-select: none;
+}
+.pillar-preview-card:hover,
+.pillar-preview-card:focus-visible {
+  border-color: var(--gold-dim);
+  background: var(--done-bg);
+  outline: none;
+}
+.pillar-preview-icon {
+  font-size: 1.2rem;
+  color: var(--gold);
+  flex-shrink: 0;
+}
+.pillar-preview-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.pillar-preview-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+}
+.pillar-preview-desc {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+/* ═══════════════════════════════════════════════
+   FIX 7 — Splash Screen
+   ═══════════════════════════════════════════════ */
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: splash-in 0.4s ease both;
+}
+@keyframes splash-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.splash-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  animation: splash-rise 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+}
+@keyframes splash-rise {
+  from { opacity: 0; transform: translateY(24px) scale(0.9); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.splash-mark {
+  font-size: 3.6rem;
+  color: var(--gold);
+  animation: splash-pulse 2s ease-in-out infinite;
+  line-height: 1;
+}
+@keyframes splash-pulse {
+  0%, 100% { opacity: 0.75; transform: scale(0.95); }
+  50%       { opacity: 1;    transform: scale(1.05); }
+}
+.splash-name {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.splash-tagline {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* ═══════════════════════════════════════════════
+   FIX 8 — Share Button on Celebration
+   ═══════════════════════════════════════════════ */
+.btn-share {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 320px;
+  padding: 14px 20px;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--gold-dim);
+  background: transparent;
+  color: var(--gold);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s, transform 0.1s;
+  margin-bottom: 12px;
+}
+.btn-share:hover  { background: var(--done-bg); border-color: var(--gold); }
+.btn-share:active { transform: scale(0.97); }
+.btn-share--loading { opacity: 0.6; cursor: not-allowed; }
+
+/* ═══════════════════════════════════════════════
+   FIX 9 — Expandable Pillar Cards
+   ═══════════════════════════════════════════════ */
+.pillar-header--btn {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+.pillar-header-right {
+  margin-left: auto;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+.pillar-chevron {
+  font-size: 1.4rem;
+  color: var(--text-muted);
+  line-height: 1;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s;
+  display: block;
+  /* Rotate › into ↓ */
+  transform: rotate(0deg);
+}
+.pillar-chevron--open {
+  transform: rotate(90deg);
+  color: var(--gold-dim);
+}
+
+/* Expandable body — CSS grid-row trick for smooth height animation */
+.pillar-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.pillar-body--open {
+  grid-template-rows: 1fr;
+}
+/* Single child div that overflows hidden (required for grid collapse) */
+.pillar-body-inner {
+  overflow: hidden;
+  padding-top: 0;
+  transition: padding-top 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.pillar-body--open .pillar-body-inner {
+  padding-top: 12px;
+}
+
+/* ═══════════════════════════════════════════════
+   FIX 10 — Grace Day Shield
+   ═══════════════════════════════════════════════ */
+.grace-shield {
+  margin-left: 6px;
+  font-size: 0.9em;
+  animation: shield-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  display: inline-block;
+}
+@keyframes shield-in {
+  from { opacity: 0; transform: scale(0.4); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ═══════════════════════════════════════════════
+   FIX 11 — Task Check Animation
+   ═══════════════════════════════════════════════ */
+.task-check {
+  /* Fixed size container so layout doesn't shift */
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color 0.2s, background 0.2s;
+}
+.task-item--done .task-check {
+  border-color: var(--gold);
+  background: rgba(201,168,76,0.15);
+}
+.task-check-mark {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--gold);
+  font-weight: 700;
+  /* Pop-in animation — re-triggers every time this element mounts */
+  animation: check-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes check-pop {
+  0%   { opacity: 0; transform: scale(0); }
+  60%  { transform: scale(1.4); }
+  80%  { transform: scale(0.88); }
+  100% { opacity: 1; transform: scale(1); }
+}
+/* Pulse the whole task row on complete */
+.task-item--done {
+  animation: task-row-pulse 0.4s ease both;
+}
+@keyframes task-row-pulse {
+  0%   { background: transparent; }
+  40%  { background: rgba(201,168,76,0.1); }
+  100% { background: transparent; }
+}
+
+/* ═══════════════════════════════════════════════
+   Morning Commitment Page  (.mc-*)
+   ═══════════════════════════════════════════════ */
+.mc-screen {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-content {
+  flex: 1;
+  padding: 20px 16px 48px;
+  max-width: 600px;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Identity statement banner */
+.mc-identity {
+  background: rgba(201,168,76,0.07);
+  border: 1px solid rgba(201,168,76,0.2);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  text-align: center;
+}
+.mc-identity-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+  margin-bottom: 8px;
+}
+.mc-identity-text {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--gold);
+  line-height: 1.4;
+  font-style: italic;
+}
+
+/* Pillar commitment fields */
+.mc-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.mc-field {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.2s;
+}
+.mc-field:focus-within {
+  border-color: var(--gold-dim);
+}
+
+.mc-field-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mc-field-icon {
+  font-size: 1rem;
+  color: var(--gold);
+  flex-shrink: 0;
+}
+.mc-field-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.mc-textarea {
+  background: transparent;
+  border: none;
+  outline: none;
+  font: inherit;
+  font-size: 0.93rem;
+  color: var(--text);
+  line-height: 1.5;
+  resize: none;
+  width: 100%;
+  min-height: 48px;
+}
+.mc-textarea::placeholder { color: var(--text-muted); }
+
+/* Commit button */
+.btn-commit {
+  background: var(--gold);
+  color: #0F0D0A;
+  font-weight: 800;
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  padding: 16px;
+  border-radius: 10px;
+  text-align: center;
+  transition: opacity 0.2s, transform 0.1s;
+  margin-top: 4px;
+}
+.btn-commit:hover  { opacity: 0.9; }
+.btn-commit:active { transform: scale(0.98); }
+.btn-commit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Committed state — already committed today */
+.mc-committed-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(201,168,76,0.08);
+  border: 1px solid rgba(201,168,76,0.2);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+}
+.mc-committed-check {
+  font-size: 1.1rem;
+  color: var(--gold);
+  font-weight: 700;
+}
+.mc-committed-text {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+/* Celebration inside morning commitment */
+.mc-celebration {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 32px 20px 48px;
+  text-align: center;
+}
+.mc-celebration-check {
+  width: 72px;
+  height: 72px;
+}
+.mc-celebration-title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text);
+}
+.mc-celebration-sub {
+  font-size: 0.95rem;
+  color: var(--gold);
+  font-style: italic;
+}
+.mc-verse-block {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--gold-dim);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  width: 100%;
+  max-width: 440px;
+  text-align: left;
+}
+.mc-verse-text {
+  font-size: 0.93rem;
+  color: var(--text);
+  line-height: 1.6;
+  font-style: italic;
+  margin-bottom: 6px;
+}
+.mc-verse-ref {
+  font-size: 0.8rem;
+  color: var(--gold-dim);
+  font-weight: 600;
+}
+.mc-commitment-review {
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mc-review-row {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  display: flex;
+  gap: 10px;
+  text-align: left;
+}
+.mc-review-icon {
+  color: var(--gold);
+  font-size: 0.95rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.mc-review-text {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* ═══════════════════════════════════════════════
+   Evening Reflection Page  (.evening-*)
+   ═══════════════════════════════════════════════ */
+.evening-screen {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.evening-content {
+  flex: 1;
+  padding: 20px 16px 48px;
+  max-width: 600px;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.evening-heading {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text);
+}
+.evening-subheading {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-top: -12px;
+}
+
+/* Morning commitments recap */
+.evening-commitments {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.evening-commitments-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 12px 16px 8px;
+  border-bottom: 1px solid var(--border);
+}
+.evening-commitment-row {
+  display: flex;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  align-items: flex-start;
+}
+.evening-commitment-row:last-child {
+  border-bottom: none;
+}
+.evening-commit-icon {
+  color: var(--gold-dim);
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.evening-commit-text {
+  font-size: 0.88rem;
+  color: var(--text);
+  line-height: 1.4;
+}
+.evening-commit-empty {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  padding: 12px 16px;
+  font-style: italic;
+}
+
+/* Journal textarea */
+.evening-journal-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.evening-journal-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.evening-journal {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  font-size: 0.93rem;
+  color: var(--text);
+  line-height: 1.6;
+  resize: none;
+  width: 100%;
+  min-height: 100px;
+  transition: border-color 0.2s;
+}
+.evening-journal:focus {
+  border-color: var(--gold-dim);
+  outline: none;
+}
+.evening-journal::placeholder { color: var(--text-muted); }
+
+/* Showed up options */
+.evening-showed-up {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.evening-showed-up-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.showed-up-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  text-align: left;
+  font-size: 0.95rem;
+  color: var(--text);
+  transition: border-color 0.2s, background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.showed-up-btn:hover {
+  border-color: var(--gold-dim);
+}
+.showed-up-btn--active {
+  border-color: var(--gold);
+  background: rgba(201,168,76,0.08);
+  color: var(--gold);
+  font-weight: 600;
+}
+.showed-up-indicator {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
+/* Saving state */
+.evening-saving {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* Saved affirmation */
+.evening-affirm {
+  background: rgba(201,168,76,0.07);
+  border: 1px solid rgba(201,168,76,0.2);
+  border-radius: var(--radius);
+  padding: 20px;
+  text-align: center;
+}
+.evening-affirm-icon {
+  font-size: 1.6rem;
+  display: block;
+  margin-bottom: 10px;
+}
+.evening-affirm-text {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--gold);
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* Dashboard evening card */
+.evening-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  transition: border-color 0.2s;
+}
+.evening-card:hover {
+  border-color: var(--gold-dim);
+}
+.evening-card-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.evening-card-icon {
+  font-size: 1.4rem;
+  color: var(--gold-dim);
+}
+.evening-card-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.evening-card-sub {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.evening-card-arrow {
+  font-size: 1.4rem;
+  color: var(--text-muted);
+}
+
+/* ═══════════════════════════════════════════════
+   Drift Screen  (.drift-*)
+   ═══════════════════════════════════════════════ */
+.drift-screen {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  padding: 32px 20px;
+}
+.drift-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  text-align: center;
+  max-width: 360px;
+  animation: drift-rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes drift-rise {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.drift-mark {
+  font-size: 2.4rem;
+  color: var(--gold);
+  opacity: 0.6;
+}
+.drift-text {
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.65;
+}
+.btn-drift {
+  background: var(--gold);
+  color: #0F0D0A;
+  font-weight: 800;
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  padding: 16px 40px;
+  border-radius: 10px;
+  transition: opacity 0.2s, transform 0.1s;
+}
+.btn-drift:hover  { opacity: 0.9; }
+.btn-drift:active { transform: scale(0.97); }
+
+/* ═══════════════════════════════════════════════
+   Onboarding identity textarea
+   ═══════════════════════════════════════════════ */
+.identity-field-wrap {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+.identity-textarea {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  font-size: 0.97rem;
+  color: var(--text);
+  line-height: 1.55;
+  resize: none;
+  width: 100%;
+  text-align: center;
+  font-style: italic;
+  transition: border-color 0.2s;
+}
+.identity-textarea:focus {
+  border-color: var(--gold-dim);
+  outline: none;
+}
+.identity-textarea::placeholder { color: var(--text-muted); }
+
+/* ═══════════════════════════════════════════════
+   Shared: back button used in full-screen pages
+   ═══════════════════════════════════════════════ */
+.back-btn {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  padding: 4px 0;
+  transition: color 0.2s;
+}
+.back-btn:hover { color: var(--text); }
+
+/* ═══════════════════════════════════════════════
+   Morning Commitment — celebration + form classes
+   (exact names used in MorningCommitment.jsx)
+   ═══════════════════════════════════════════════ */
+
+/* Full-screen celebration wrapper */
+.mc-celebrate {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 20px 60px;
+  gap: 24px;
+  max-width: 540px;
+  margin: 0 auto;
+  width: 100%;
+}
+.mc-celebrate-top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+.mc-celebrate-mark {
+  font-size: 2.4rem;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+.mc-celebrate-heading {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text);
+}
+.mc-celebrate-sub {
+  font-size: 0.95rem;
+  color: var(--gold);
+  font-style: italic;
+}
+.mc-celebrate-streak {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 8px;
+}
+.mc-streak-num {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--gold);
+  line-height: 1;
+}
+.mc-streak-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Verse card */
+.mc-verse-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--gold-dim);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  width: 100%;
+  text-align: left;
+}
+.mc-verse-text {
+  font-size: 0.93rem;
+  color: var(--text);
+  line-height: 1.65;
+  font-style: italic;
+  margin-bottom: 8px;
+}
+.mc-verse-ref {
+  font-size: 0.8rem;
+  color: var(--gold-dim);
+  font-weight: 600;
+}
+
+/* Commitment review section */
+.mc-review {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mc-review-heading {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.mc-review-row {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.mc-review-icon {
+  color: var(--gold-dim);
+  font-size: 0.95rem;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.mc-review-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 3px;
+}
+.mc-review-text {
+  font-size: 0.88rem;
+  color: var(--text);
+  line-height: 1.4;
+}
+.mc-back-btn {
+  width: 100%;
+  max-width: 440px;
+}
+
+/* Commitment form elements */
+.mc-date {
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: -8px;
+}
+.mc-identity {
+  background: rgba(201,168,76,0.07);
+  border: 1px solid rgba(201,168,76,0.2);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  text-align: center;
+}
+.mc-identity-text {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--gold);
+  line-height: 1.4;
+  font-style: italic;
+}
+.mc-subheading {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  margin-top: -8px;
+}
+.mc-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.mc-field {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.2s;
+}
+.mc-field:focus-within { border-color: var(--gold-dim); }
+.mc-field-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mc-field-icon {
+  font-size: 0.95rem;
+  color: var(--gold);
+  flex-shrink: 0;
+}
+.mc-field-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.mc-field-textarea {
+  background: transparent;
+  border: none;
+  outline: none;
+  font: inherit;
+  font-size: 0.92rem;
+  color: var(--text);
+  line-height: 1.5;
+  resize: none;
+  width: 100%;
+}
+.mc-field-textarea::placeholder { color: var(--text-muted); }
+.mc-commit-btn {
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  padding: 16px;
+  font-weight: 800;
+}
+
+/* ═══════════════════════════════════════════════
+   Evening Reflection — exact class names from EveningReflection.jsx
+   ═══════════════════════════════════════════════ */
+.evening-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+}
+.evening-heading {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-top: -8px;
+}
+.evening-sub {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-top: -10px;
+}
+.evening-section-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.evening-commitments {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.evening-commit-row {
+  display: flex;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  align-items: flex-start;
+}
+.evening-commit-row:last-child { border-bottom: none; }
+.evening-commit-icon {
+  color: var(--gold-dim);
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.evening-commit-text {
+  font-size: 0.88rem;
+  color: var(--text);
+  line-height: 1.45;
+}
+.evening-journal-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.evening-textarea {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  font: inherit;
+  font-size: 0.93rem;
+  color: var(--text);
+  line-height: 1.6;
+  resize: none;
+  width: 100%;
+  min-height: 110px;
+  transition: border-color 0.2s;
+}
+.evening-textarea:focus {
+  border-color: var(--gold-dim);
+  outline: none;
+}
+.evening-textarea::placeholder { color: var(--text-muted); }
+.evening-showed-up {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.showed-up-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.showed-up-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: border-color 0.2s, background 0.2s;
+  width: 100%;
+}
+.showed-up-btn:hover { border-color: var(--gold-dim); }
+.showed-up-btn--active {
+  border-color: var(--gold);
+  background: rgba(201,168,76,0.08);
+}
+.showed-up-icon {
+  font-size: 1rem;
+  color: var(--gold-dim);
+  flex-shrink: 0;
+}
+.showed-up-btn--active .showed-up-icon { color: var(--gold); }
+.showed-up-label {
+  font-size: 0.95rem;
+  color: var(--text);
+  font-weight: 500;
+}
+.showed-up-btn--active .showed-up-label {
+  color: var(--gold);
+  font-weight: 600;
+}
+
+/* Evening saved state */
+.evening-saved {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+  padding: 40px 20px;
+}
+.evening-saved-mark {
+  font-size: 2.4rem;
+  color: var(--gold);
+  opacity: 0.7;
+}
+.evening-saved-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text);
+}
+.evening-saved-sub {
+  font-size: 0.95rem;
+  color: var(--gold);
+  font-style: italic;
+  max-width: 320px;
+  line-height: 1.5;
+}
+
+/* btn-outline (used in dashboard cta-complete Review button) */
+.btn-outline {
+  border: 1px solid var(--gold-dim);
+  color: var(--gold);
+  font-weight: 600;
+  font-size: 0.88rem;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: border-color 0.2s, background 0.2s;
+  flex-shrink: 0;
+}
+.btn-outline:hover {
+  border-color: var(--gold);
+  background: rgba(201,168,76,0.08);
 }

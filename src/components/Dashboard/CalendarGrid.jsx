@@ -3,8 +3,6 @@ const MONTH_ABBR = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct',
 export default function CalendarGrid({ calendarDays }) {
   if (!calendarDays || calendarDays.length === 0) return null
 
-  // Group into weeks of 7 for a proper calendar feel, but we'll just
-  // display 30 dots in a 6-column grid for compactness
   const completedCount = calendarDays.filter(d => d.isComplete).length
 
   return (
@@ -18,19 +16,27 @@ export default function CalendarGrid({ calendarDays }) {
       </div>
 
       <div className="calendar-grid">
-        {calendarDays.map(day => (
-          <div
-            key={day.date}
-            className={[
-              'cal-dot',
-              day.isComplete  ? 'cal-dot--done'  : '',
-              day.isToday     ? 'cal-dot--today' : '',
-            ].join(' ')}
-            title={`${MONTH_ABBR[day.month]} ${day.dayNum}${day.isComplete ? ' ✓' : ''}`}
-          >
-            <span className="cal-dot-num">{day.dayNum}</span>
-          </div>
-        ))}
+        {calendarDays.map(day => {
+          const pc = day.pillarsComplete ?? 0
+          const tooltipSuffix = day.isComplete
+            ? ' ✓'
+            : pc > 0 ? ` (${pc}/4)` : ''
+
+          return (
+            <div
+              key={day.date}
+              className={[
+                'cal-dot',
+                day.isComplete      ? 'cal-dot--done'    : '',
+                !day.isComplete && pc > 0 ? 'cal-dot--partial' : '',
+                day.isToday         ? 'cal-dot--today'   : '',
+              ].filter(Boolean).join(' ')}
+              title={`${MONTH_ABBR[day.month]} ${day.dayNum}${tooltipSuffix}`}
+            >
+              <span className="cal-dot-num">{day.dayNum}</span>
+            </div>
+          )
+        })}
       </div>
     </div>
   )

@@ -1,36 +1,119 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from './hooks/useAuth'
 import { useNotifications } from './hooks/useNotifications'
+import { getLocalDate } from './lib/dateUtils'
+import SplashScreen from './components/SplashScreen'
 import AuthPage from './pages/AuthPage'
+import Onboarding from './pages/Onboarding'
 import Dashboard from './pages/Dashboard'
-import DailyCheckIn from './pages/DailyCheckIn'
+import MorningCommitment from './pages/MorningCommitment'
+import EveningReflection from './pages/EveningReflection'
+import DriftScreen from './pages/DriftScreen'
 import History from './pages/History'
 import Profile from './pages/Profile'
 import CommunityFeed from './pages/CommunityFeed'
 import BottomNav from './components/Nav/BottomNav'
 import NotificationPrompt from './components/Community/NotificationPrompt'
+import ResetPassword from './components/Auth/ResetPassword'
 
-// Pages that belong to the "Today" tab
-const TODAY_PAGES = ['dashboard', 'checkin']
+const TODAY_PAGES    = ['dashboard', 'checkin', 'evening']
+const LAST_OPEN_KEY  = 'fb_last_app_open'
+const DRIFT_DAYS     = 3
+
+// Read ?fb_page param once on load to set initial page
+function getInitialPage() {
+  const params = new URLSearchParams(window.location.search)
+  const fbPage = params.get('fb_page')
+  if (fbPage === 'evening') {
+    // Clean URL so reload doesn't re-trigger
+    window.history.replaceState({}, '', window.location.pathname)
+    return 'evening'
+  }
+  return 'dashboard'
+}
 
 export default function App() {
-  const { user, loading } = useAuth()
-  const [page, setPage] = useState('dashboard')
+  const {
+    user,
+    profile,
+    loading,
+    profileLoading,
+    authEvent,
+    resetPassword,
+    markOnboardingDone,
+  } = useAuth()
 
-  const { showPrompt, reminderTime, requestAndSave, dismissPrompt } =
+  const [page, setPage]           = useState(getInitialPage)
+  const [showDrift, setShowDrift] = useState(false)
+
+  // ── Splash: show for at least 2 s and while auth is resolving ─────
+  const [splashReady, setSplashReady] = useState(false)
+  useEffect(() => {
+    const t = setTimeout(() => setSplashReady(true), 2000)
+    return () => clearTimeout(t)
+  }, [])
+
+  // ── Drift detection: show if app not opened in 3+ days ────────────
+  useEffect(() => {
+    if (!user) return
+    const today    = getLocalDate()
+    const lastOpen = localStorage.getItem(LAST_OPEN_KEY)
+    if (lastOpen && lastOpen !== today) {
+      const msPerDay = 1000 * 60 * 60 * 24
+      const diffDays = Math.round(
+        (new Date(today + 'T12:00:00') - new Date(lastOpen + 'T12:00:00')) / msPerDay
+      )
+      if (diffDays >= DRIFT_DAYS) setShowDrift(true)
+    }
+    localStorage.setItem(LAST_OPEN_KEY, today)
+  }, [user])
+
+  const { showPrompt, reminderTime, requestAndSave, dismissPrompt, maybeTriggerPrompt } =
     useNotifications(user?.id)
 
   function navigate(to) { setPage(to) }
 
-  if (loading) {
-    return (
-      <div className="loader-screen">
-        <div className="loader-icon">✦</div>
-      </div>
-    )
+  // Show splash until timer fires AND auth has resolved
+  if (!splashReady || loading || profileLoading) {
+    return <SplashScreen />
   }
 
   if (!user) return <AuthPage />
+
+  if (authEvent === 'PASSWORD_RECOVERY') {
+    return <ResetPassword onResetPassword={resetPassword} />
+  }
+
+  const onboardingDone =
+    localStorage.getItem('fb_onboarding_done') === '1' ||
+    profile?.onboarding_done === true
+
+  if (!onboardingDone) {
+    return (
+      <Onboarding
+        userId={user.id}
+        onComplete={() => {
+          markOnboardingDone()
+          navigate('dashboard')
+        }}
+      />
+    )
+  }
+
+  // ── Drift Screen — shown before dashboard if away 3+ days ─────────
+  if (showDrift) {
+    return (
+      <DriftScreen
+        onReturn={() => {
+          setShowDrift(false)
+          navigate('checkin')
+        }}
+      />
+    )
+  }
+
+  const identityStatement =
+    profile?.identity_statement || 'I am a man of faith, discipline, and character.'
 
   const activeTab = TODAY_PAGES.includes(page) ? 'today' : page
 
@@ -42,8 +125,23 @@ export default function App() {
   return (
     <div className="app-root">
       <div className="page-area">
-        {page === 'dashboard' && <Dashboard navigate={navigate} userId={user.id} />}
-        {page === 'checkin'   && <DailyCheckIn navigate={navigate} userId={user.id} />}
+        {page === 'dashboard' && (
+          <Dashboard navigate={navigate} userId={user.id} />
+        )}
+        {page === 'checkin' && (
+          <MorningCommitment
+            navigate={navigate}
+            userId={user.id}
+            identityStatement={identityStatement}
+            onAllComplete={maybeTriggerPrompt}
+          />
+        )}
+        {page === 'evening' && (
+          <EveningReflection
+            navigate={navigate}
+            userId={user.id}
+          />
+        )}
         {page === 'history'   && <History userId={user.id} />}
         {page === 'community' && <CommunityFeed />}
         {page === 'profile'   && <Profile navigate={navigate} />}
@@ -51,7 +149,6 @@ export default function App() {
 
       <BottomNav activeTab={activeTab} onTab={handleTabPress} />
 
-      {/* First-time notification setup prompt */}
       {showPrompt && (
         <NotificationPrompt
           reminderTime={reminderTime}

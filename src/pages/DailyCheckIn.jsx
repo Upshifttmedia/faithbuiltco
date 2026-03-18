@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useCheckIn, PILLARS } from '../hooks/useCheckIn'
 import { useStreak } from '../hooks/useStreak'
 import PillarCard from '../components/CheckIn/PillarCard'
@@ -44,12 +44,20 @@ const todayLabel = new Date().toLocaleDateString('en-US', {
   weekday: 'long', month: 'long', day: 'numeric',
 })
 
-export default function DailyCheckIn({ navigate, userId }) {
+export default function DailyCheckIn({ navigate, userId, onAllComplete }) {
   const { completions, loading, toggleTask, allCompleted, completedCount, totalCount } = useCheckIn(userId)
   const { streak, updateStreak } = useStreak(userId)
+  const completeFiredRef = useRef(false)
 
   useEffect(() => {
-    if (allCompleted) updateStreak(true)
+    if (allCompleted) {
+      updateStreak(true)
+      // Fire onAllComplete exactly once per session (triggers notification prompt)
+      if (!completeFiredRef.current) {
+        completeFiredRef.current = true
+        onAllComplete?.()
+      }
+    }
   }, [allCompleted]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) {
@@ -108,6 +116,7 @@ export default function DailyCheckIn({ navigate, userId }) {
                   pillar={pillar}
                   completions={completions}
                   onToggle={toggleTask}
+                  userId={userId}
                 />
               ))}
             </div>

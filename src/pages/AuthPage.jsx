@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import LoginForm from '../components/Auth/LoginForm'
 import SignupForm from '../components/Auth/SignupForm'
+import ForgotPassword from '../components/Auth/ForgotPassword'
 import { useAuth } from '../hooks/useAuth'
 
 export default function AuthPage() {
-  const [mode, setMode] = useState('login')
-  const { signIn, signUp } = useAuth()
+  const [mode, setMode] = useState('login') // 'login' | 'signup' | 'forgot'
+  const { signIn, signUp, forgotPassword } = useAuth()
 
   return (
     <div className="auth-page">
@@ -16,15 +17,23 @@ export default function AuthPage() {
       </div>
 
       <div className="auth-card">
-        {mode === 'login' ? (
+        {mode === 'login' && (
           <LoginForm
             onLogin={signIn}
             onSwitch={() => setMode('signup')}
+            onForgot={() => setMode('forgot')}
           />
-        ) : (
+        )}
+        {mode === 'signup' && (
           <SignupForm
             onSignup={signUp}
             onSwitch={() => setMode('login')}
+          />
+        )}
+        {mode === 'forgot' && (
+          <ForgotPassword
+            onForgotPassword={forgotPassword}
+            onBack={() => setMode('login')}
           />
         )}
       </div>

@@ -1,16 +1,16 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 
-const PROMPTED_KEY   = 'fb_notification_prompted'
-const TIME_KEY       = 'fb_reminder_time'
-const LAST_NOTIF_KEY = 'fb_last_notification_date'
+const PROMPTED_KEY          = 'fb_notification_prompted'
+const TIME_KEY              = 'fb_reminder_time'
+const LAST_MORNING_NOTIF    = 'fb_last_morning_notification'
+const LAST_EVENING_NOTIF    = 'fb_last_evening_notification'
+const EVENING_HOUR          = 20   // 8 pm
 
-// Register service worker once
 async function registerSW() {
   if (!('serviceWorker' in navigator)) return null
   try {
-    const reg = await navigator.serviceWorker.register('/sw.js')
-    return reg
+    return await navigator.serviceWorker.register('/sw.js')
   } catch {
     return null
   }
@@ -23,60 +23,68 @@ export function useNotifications(userId) {
   const [reminderTime, setReminderTime] = useState(
     localStorage.getItem(TIME_KEY) || '07:00'
   )
-  // Show the first-time setup prompt
   const [showPrompt, setShowPrompt] = useState(false)
   const swRef = useRef(null)
 
   useEffect(() => {
     registerSW().then(reg => { swRef.current = reg })
-
-    // Show prompt once after first login
-    if (userId && !localStorage.getItem(PROMPTED_KEY)) {
-      const timer = setTimeout(() => setShowPrompt(true), 1500)
-      return () => clearTimeout(timer)
-    }
+    // Prompt is triggered by maybeTriggerPrompt() after first completed check-in,
+    // not automatically on app load.
   }, [userId])
 
-  // On app open / visibility change, fire notification if it's due
+  // Check both morning and evening notifications on open / visibility change
   useEffect(() => {
-    function checkAndNotify() {
+    function checkNotifications() {
       if (permission !== 'granted') return
-      const time = localStorage.getItem(TIME_KEY)
-      if (!time) return
       const today = new Date().toISOString().split('T')[0]
-      if (localStorage.getItem(LAST_NOTIF_KEY) === today) return
+      const now   = new Date()
 
-      const [h, m] = time.split(':').map(Number)
-      const now = new Date()
-      const target = new Date()
-      target.setHours(h, m, 0, 0)
+      // ── Morning notification ─────────────────────────────────────────
+      const morningTime = localStorage.getItem(TIME_KEY)
+      if (morningTime && localStorage.getItem(LAST_MORNING_NOTIF) !== today) {
+        const [h, m] = morningTime.split(':').map(Number)
+        const target = new Date()
+        target.setHours(h, m, 0, 0)
+        if (now >= target) {
+          fireNotification({
+            title: 'FaithBuilt',
+            body: 'Your morning is waiting. Begin your day with intention.',
+            tag: 'morning-reminder',
+            url: '/',
+          })
+          localStorage.setItem(LAST_MORNING_NOTIF, today)
+        }
+      }
 
-      if (now >= target) {
-        fireNotification()
-        localStorage.setItem(LAST_NOTIF_KEY, today)
+      // ── Evening reflection notification (8pm) ───────────────────────
+      if (localStorage.getItem(LAST_EVENING_NOTIF) !== today) {
+        const target = new Date()
+        target.setHours(EVENING_HOUR, 0, 0, 0)
+        if (now >= target) {
+          fireNotification({
+            title: 'FaithBuilt',
+            body: 'How did today go? Did you show up as who you committed to be this morning?',
+            tag: 'evening-reflection',
+            url: '/?fb_page=evening',
+          })
+          localStorage.setItem(LAST_EVENING_NOTIF, today)
+        }
       }
     }
 
-    checkAndNotify()
+    checkNotifications()
 
-    const onVisible = () => { if (document.visibilityState === 'visible') checkAndNotify() }
+    const onVisible = () => { if (document.visibilityState === 'visible') checkNotifications() }
     document.addEventListener('visibilitychange', onVisible)
     return () => document.removeEventListener('visibilitychange', onVisible)
   }, [permission]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  function fireNotification() {
+  function fireNotification({ title, body, tag, url }) {
     const sw = swRef.current
     if (sw?.active) {
-      sw.active.postMessage({
-        type: 'SHOW_NOTIFICATION',
-        title: 'FaithBuilt',
-        body: 'Your alignment starts now. Open FaithBuilt.',
-      })
+      sw.active.postMessage({ type: 'SHOW_NOTIFICATION', title, body, tag, url })
     } else if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-      new Notification('FaithBuilt', {
-        body: 'Your alignment starts now. Open FaithBuilt.',
-        icon: '/favicon.svg',
-      })
+      new Notification(title, { body, icon: '/favicon.svg' })
     }
   }
 
@@ -91,12 +99,8 @@ export function useNotifications(userId) {
     localStorage.setItem(PROMPTED_KEY, 'true')
     setShowPrompt(false)
 
-    // Persist to Supabase profile
     if (userId) {
-      await supabase
-        .from('profiles')
-        .update({ reminder_time: time })
-        .eq('id', userId)
+      await supabase.from('profiles').update({ reminder_time: time }).eq('id', userId)
     }
   }
 
@@ -105,22 +109,14 @@ export function useNotifications(userId) {
     setShowPrompt(false)
   }
 
-  // Update the PWA app-icon badge based on completion state
-  function updateBadge(isComplete) {
-    if (!('setAppBadge' in navigator)) return
-    if (isComplete) {
-      navigator.clearAppBadge?.()
-    } else {
-      navigator.setAppBadge?.(1)
-    }
+  function maybeTriggerPrompt() {
+    if (!localStorage.getItem(PROMPTED_KEY)) setShowPrompt(true)
   }
 
-  return {
-    permission,
-    reminderTime,
-    showPrompt,
-    requestAndSave,
-    dismissPrompt,
-    updateBadge,
+  function updateBadge(isComplete) {
+    if (!('setAppBadge' in navigator)) return
+    isComplete ? navigator.clearAppBadge?.() : navigator.setAppBadge?.(1)
   }
+
+  return { permission, reminderTime, showPrompt, requestAndSave, dismissPrompt, maybeTriggerPrompt, updateBadge }
 }

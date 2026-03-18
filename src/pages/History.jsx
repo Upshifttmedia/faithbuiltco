@@ -1,8 +1,9 @@
 import { useHistory } from '../hooks/useHistory'
 import { useAuth } from '../hooks/useAuth'
 
+const TOTAL_PILLARS = 4
+const PILLAR_ICONS  = ['✦', '⚡', '◈', '◆']
 const PILLAR_LABELS = ['Faith', 'Body', 'Mind', 'Stewardship']
-const PILLAR_ICONS = ['✦', '⚡', '◈', '◆']
 
 function formatDate(dateStr) {
   const d = new Date(dateStr + 'T12:00:00')
@@ -13,7 +14,7 @@ export default function History() {
   const { user } = useAuth()
   const { days, loading } = useHistory(user?.id)
 
-  // Reverse so most recent is first
+  // Reverse so most recent day is first
   const sortedDays = [...days].reverse()
 
   return (
@@ -21,7 +22,7 @@ export default function History() {
       <header className="top-bar">
         <div className="brand">
           <span className="brand-mark">✦</span>
-          <span className="brand-name">History</span>
+          <span className="brand-name">Your Journey</span>
         </div>
       </header>
 
@@ -36,39 +37,60 @@ export default function History() {
           </div>
         ) : (
           <div className="history-list">
-            {sortedDays.map(day => (
-              <div
-                key={day.date}
-                className={`history-card ${day.isComplete ? 'history-card--done' : ''} ${day.isToday ? 'history-card--today' : ''}`}
-              >
-                <div className="history-card-left">
-                  <div className="history-status-ring">
-                    {day.isComplete
-                      ? <span className="history-check">✓</span>
-                      : <span className="history-dash">—</span>
-                    }
-                  </div>
-                  <div>
-                    <p className="history-date-label">
-                      {day.isToday ? 'Today' : formatDate(day.date)}
-                    </p>
-                    <p className="history-status-text">
-                      {day.isComplete ? 'All pillars completed' : 'Not yet complete'}
-                    </p>
-                  </div>
-                </div>
+            {sortedDays.map(day => {
+              const pc    = day.pillarsComplete ?? 0
+              const done  = day.isComplete
+              const none  = pc === 0 && !day.isToday
+              const label = done
+                ? 'Fully aligned'
+                : pc > 0
+                  ? `${pc} / ${TOTAL_PILLARS} pillars`
+                  : day.isToday ? 'In progress' : 'Not yet'
 
-                {day.isComplete && (
-                  <div className="history-pillars">
-                    {PILLAR_ICONS.map((icon, i) => (
-                      <span key={i} className="history-pillar-icon" title={PILLAR_LABELS[i]}>
-                        {icon}
-                      </span>
-                    ))}
+              return (
+                <div
+                  key={day.date}
+                  className={[
+                    'history-card',
+                    done ? 'history-card--done' : '',
+                    pc > 0 && !done ? 'history-card--partial' : '',
+                    day.isToday ? 'history-card--today' : '',
+                  ].filter(Boolean).join(' ')}
+                >
+                  <div className="history-card-left">
+                    <div className={`history-status-ring${done ? ' history-status-ring--done' : ''}`}>
+                      {done
+                        ? <span className="history-check">✓</span>
+                        : pc > 0
+                          ? <span className="history-partial">{pc}</span>
+                          : <span className="history-dash">—</span>
+                      }
+                    </div>
+                    <div>
+                      <p className="history-date-label">
+                        {day.isToday ? 'Today' : formatDate(day.date)}
+                      </p>
+                      <p className="history-status-text">{label}</p>
+                    </div>
                   </div>
-                )}
-              </div>
-            ))}
+
+                  {/* Pillar icons — filled for complete days, dimmed for partial */}
+                  {(done || pc > 0) && (
+                    <div className="history-pillars">
+                      {PILLAR_ICONS.map((icon, i) => (
+                        <span
+                          key={i}
+                          className={`history-pillar-icon${done ? '' : ' history-pillar-icon--dim'}`}
+                          title={PILLAR_LABELS[i]}
+                        >
+                          {icon}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </div>
         )}
       </main>

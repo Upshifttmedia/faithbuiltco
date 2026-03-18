@@ -1,16 +1,21 @@
 import { useState } from 'react'
 
 export default function SignupForm({ onSignup, onSwitch }) {
-  const [email, setEmail] = useState('')
+  const [name, setName]       = useState('')
+  const [email, setEmail]     = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
-  const [error, setError] = useState('')
+  const [error, setError]     = useState('')
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
+    if (!name.trim()) {
+      setError('Please enter your name.')
+      return
+    }
     if (password !== confirm) {
       setError('Passwords do not match.')
       return
@@ -20,7 +25,7 @@ export default function SignupForm({ onSignup, onSwitch }) {
       return
     }
     setLoading(true)
-    const { error } = await onSignup(email, password)
+    const { error } = await onSignup(email, password, name.trim())
     if (error) {
       setError(error.message)
     } else {
@@ -48,6 +53,19 @@ export default function SignupForm({ onSignup, onSwitch }) {
       <p className="auth-subtitle">Create your FaithBuilt account</p>
 
       {error && <div className="auth-error">{error}</div>}
+
+      <div className="field-group">
+        <label className="field-label">Your Name</label>
+        <input
+          type="text"
+          className="field-input"
+          value={name}
+          onChange={e => setName(e.target.value)}
+          placeholder="First name or full name"
+          required
+          autoComplete="name"
+        />
+      </div>
 
       <div className="field-group">
         <label className="field-label">Email</label>

@@ -7,7 +7,11 @@ export default function Profile({ navigate }) {
   const { streak } = useStreak(user?.id)
   const { totalCompleted, loading } = useHistory(user?.id)
 
-  const displayName = user?.email?.split('@')[0] ?? 'Friend'
+  // Prefer stored display_name over email prefix
+  const displayName =
+    user?.user_metadata?.display_name ||
+    user?.email?.split('@')[0] ||
+    'Friend'
   const initials = displayName.slice(0, 2).toUpperCase()
 
   async function handleSignOut() {
@@ -35,7 +39,7 @@ export default function Profile({ navigate }) {
         <div className="profile-stats">
           <div className="stat-card">
             <div className="stat-number">{loading ? '—' : totalCompleted}</div>
-            <div className="stat-label">Days Completed</div>
+            <div className="stat-label">Days Aligned</div>
           </div>
           <div className="stat-card">
             <div className="stat-number">{streak.current_streak}</div>

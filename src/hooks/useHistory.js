@@ -1,81 +1,84 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
+import { buildLastNLocalDays, getLocalDateOffset } from '../lib/dateUtils'
 
-const TOTAL_TASKS = 8 // 4 pillars × 2 tasks
+const TOTAL_TASKS  = 8  // 4 pillars × 2 tasks
+const TOTAL_PILLARS = 4
 
-function buildLastNDays(n) {
-  const days = []
-  for (let i = n - 1; i >= 0; i--) {
-    const d = new Date()
-    d.setDate(d.getDate() - i)
-    days.push({
-      date: d.toISOString().split('T')[0],
-      dayLabel: d.toLocaleDateString('en-US', { weekday: 'short' }),
-      dayNum: d.getDate(),
-      month: d.getMonth(),
-      isToday: i === 0,
-      isComplete: false,
-    })
-  }
-  return days
+// Count how many pillars have both tasks completed on a given date
+function pillarsCompleteForDate(rows, date) {
+  // rows: array of { completion_date, pillar, completed }
+  const dayRows = rows.filter(r => r.completion_date === date && r.completed === true)
+  const pillarTaskCount = {}
+  dayRows.forEach(r => {
+    pillarTaskCount[r.pillar] = (pillarTaskCount[r.pillar] || 0) + 1
+  })
+  // A pillar is complete when both its tasks are done (count === 2)
+  return Object.values(pillarTaskCount).filter(c => c >= 2).length
 }
 
 export function useHistory(userId) {
-  const [days, setDays] = useState(() => buildLastNDays(7))
-  const [calendarDays, setCalendarDays] = useState(() => buildLastNDays(30))
+  const [days, setDays]               = useState(() => buildLastNLocalDays(7))
+  const [calendarDays, setCalendarDays] = useState(() => buildLastNLocalDays(30))
   const [totalCompleted, setTotalCompleted] = useState(0)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading]         = useState(true)
 
   const fetchHistory = useCallback(async () => {
     if (!userId) return
 
-    // Fetch 30 days in one query
-    const thirtyDaysAgo = new Date()
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29)
-    const from = thirtyDaysAgo.toISOString().split('T')[0]
+    // ✅ LOCAL date so range matches the user's timezone
+    const from = getLocalDateOffset(29)
 
     const { data } = await supabase
       .from('daily_completions')
-      .select('completion_date')
+      .select('completion_date, pillar, completed')
       .eq('user_id', userId)
-      .eq('completed', true)
       .gte('completion_date', from)
 
-    // Count completed tasks per date
-    const countByDate = {}
-    if (data) {
-      data.forEach(row => {
-        countByDate[row.completion_date] = (countByDate[row.completion_date] || 0) + 1
-      })
-    }
+    const rows = data || []
 
-    const isComplete = date => (countByDate[date] || 0) >= TOTAL_TASKS
+    // Per-date helpers
+    const taskCountByDate    = {}
+    rows.filter(r => r.completed === true).forEach(r => {
+      taskCountByDate[r.completion_date] = (taskCountByDate[r.completion_date] || 0) + 1
+    })
 
-    // 7-day array (for WeekRow + History page)
-    const updated7 = buildLastNDays(7).map(d => ({ ...d, isComplete: isComplete(d.date) }))
+    const isComplete       = date => (taskCountByDate[date] || 0) >= TOTAL_TASKS
+    const pillarsComplete  = date => pillarsCompleteForDate(rows, date)
+
+    // 7-day array (WeekRow + History page)
+    const updated7 = buildLastNLocalDays(7).map(d => ({
+      ...d,
+      isComplete:     isComplete(d.date),
+      pillarsComplete: pillarsComplete(d.date),
+    }))
     setDays(updated7)
 
-    // 30-day array (for CalendarGrid on dashboard)
-    const updated30 = buildLastNDays(30).map(d => ({ ...d, isComplete: isComplete(d.date) }))
+    // 30-day array (CalendarGrid on dashboard)
+    const updated30 = buildLastNLocalDays(30).map(d => ({
+      ...d,
+      isComplete:     isComplete(d.date),
+      pillarsComplete: pillarsComplete(d.date),
+    }))
     setCalendarDays(updated30)
 
-    // Total all-time completed days (one extra query for older data)
+    // All-time completed days (older than 30-day window)
     const { data: allData } = await supabase
       .from('daily_completions')
       .select('completion_date')
       .eq('user_id', userId)
       .eq('completed', true)
-      .lt('completion_date', from) // older than 30 days
+      .lt('completion_date', from)
 
     const oldCounts = {}
     if (allData) {
-      allData.forEach(row => {
-        oldCounts[row.completion_date] = (oldCounts[row.completion_date] || 0) + 1
+      allData.forEach(r => {
+        oldCounts[r.completion_date] = (oldCounts[r.completion_date] || 0) + 1
       })
     }
 
-    const oldTotal = Object.values(oldCounts).filter(c => c >= TOTAL_TASKS).length
-    const recentTotal = Object.values(countByDate).filter(c => c >= TOTAL_TASKS).length
+    const oldTotal    = Object.values(oldCounts).filter(c => c >= TOTAL_TASKS).length
+    const recentTotal = Object.values(taskCountByDate).filter(c => c >= TOTAL_TASKS).length
     setTotalCompleted(oldTotal + recentTotal)
 
     setLoading(false)
