@@ -83,6 +83,7 @@ export async function subscribeToPush(userId) {
       return { subscription: null, error }
     }
 
+    console.log('[FaithBuilt] UPSERT COMPLETE - checking table now')
     console.log('[FaithBuilt] Subscription saved to Supabase. Push is active.')
     return { subscription: pushSub, error: null }
   } catch (err) {
@@ -99,7 +100,7 @@ export async function subscribeToPush(userId) {
  * Returns { error }
  */
 export async function unsubscribeFromPush(userId) {
-  console.log('[FaithBuilt] unsubscribeFromPush CALLED', new Error().stack)
+  console.log('[FaithBuilt] !!UNSUBSCRIBE CALLED!!', new Error().stack)
   try {
     const reg = await navigator.serviceWorker.ready
     const pushSub = await reg.pushManager.getSubscription()
