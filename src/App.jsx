@@ -78,8 +78,11 @@ export default function App() {
     setPage(to)
   }
 
-  // Show splash until timer fires AND auth has resolved
-  if (!splashReady || loading || profileLoading) {
+  // Show splash until timer fires, auth resolves, AND profile fetch is complete.
+  // profileFetched must be true before any routing decision — otherwise a user
+  // with onboarding_done=true in the DB will briefly see onboarding while the
+  // profile is still loading (profile=null → onboarding_done=undefined → show onboarding).
+  if (!splashReady || loading || profileLoading || !profileFetched) {
     return <SplashScreen />
   }
 
@@ -91,14 +94,9 @@ export default function App() {
 
   const onboardingDone =
     localStorage.getItem('fb_onboarding_done') === '1' ||
-    (profileFetched && profile?.onboarding_done === true)
+    profile?.onboarding_done === true
 
-  console.log('[FaithBuilt] onboarding check:', {
-    localStorage: localStorage.getItem('fb_onboarding_done'),
-    profileOnboardingDone: profile?.onboarding_done,
-    profileLoading: profileLoading,
-    profile: profile
-  })
+  console.log('[FaithBuilt] routing decision:', { profileFetched, onboardingDone, page })
 
   if (!onboardingDone) {
     return (
