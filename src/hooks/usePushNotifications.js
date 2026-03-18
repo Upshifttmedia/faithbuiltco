@@ -64,11 +64,14 @@ export async function subscribeToPush(userId) {
     // 5. Persist to Supabase
     const { data: { session } } = await supabase.auth.getSession()
     console.log('[FaithBuilt] Session at upsert time:', session ? session.user.id : 'NO SESSION')
-
+    if (!session) {
+      await pushSub.unsubscribe()
+      return { subscription: null, error: new Error('No active session') }
+    }
     const { data, error } = await supabase
       .from('push_subscriptions')
       .upsert(
-        { user_id: userId, subscription: pushSub.toJSON() },
+        { user_id: session.user.id, subscription: pushSub.toJSON() },
         { onConflict: 'user_id', ignoreDuplicates: false }
       )
       .select()
