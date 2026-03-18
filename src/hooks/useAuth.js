@@ -39,6 +39,7 @@ export function useAuth() {
   }
 
   // ── Session bootstrap ───────────────────────────────────────────────
+  const profileFetchedOnce = { current: false }
   useEffect(() => {
     // Handle email-confirmation / password-reset links with a token in the URL
     const params    = new URLSearchParams(window.location.search)
@@ -61,6 +62,7 @@ export function useAuth() {
         const u = session?.user ?? null
         setUser(u)
         fetchProfile(u?.id)
+        profileFetchedOnce.current = true
         setLoading(false)
       })
     }
@@ -68,7 +70,12 @@ export function useAuth() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       const u = session?.user ?? null
       setUser(u)
-      if (event === 'SIGNED_IN')          fetchProfile(u?.id)
+      if (event === 'SIGNED_IN') {
+        if (!profileFetchedOnce.current) {
+          profileFetchedOnce.current = true
+          fetchProfile(u?.id)
+        }
+      }
       if (event === 'SIGNED_OUT')         setProfile(null)
       if (event === 'PASSWORD_RECOVERY')  setAuthEvent('PASSWORD_RECOVERY')
       if (event === 'SIGNED_IN' && authEvent === 'PASSWORD_RECOVERY') setAuthEvent(null)
