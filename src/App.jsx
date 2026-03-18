@@ -20,7 +20,8 @@ const TODAY_PAGES    = ['dashboard', 'checkin', 'evening']
 const LAST_OPEN_KEY  = 'fb_last_app_open'
 const DRIFT_DAYS     = 3
 
-// Read ?fb_page param once on load to set initial page
+// Read ?fb_page param once on load to set initial page.
+// Falls back to sessionStorage so a refresh restores the user's current page.
 function getInitialPage() {
   const params = new URLSearchParams(window.location.search)
   const fbPage = params.get('fb_page')
@@ -29,7 +30,7 @@ function getInitialPage() {
     window.history.replaceState({}, '', window.location.pathname)
     return 'evening'
   }
-  return 'dashboard'
+  return sessionStorage.getItem('fb_current_page') || 'dashboard'
 }
 
 export default function App() {
@@ -71,7 +72,10 @@ export default function App() {
   const { showPrompt, reminderTime, requestAndSave, dismissPrompt, maybeTriggerPrompt } =
     useNotifications(user?.id)
 
-  function navigate(to) { setPage(to) }
+  function navigate(to) {
+    sessionStorage.setItem('fb_current_page', to)
+    setPage(to)
+  }
 
   // Show splash until timer fires AND auth has resolved
   if (!splashReady || loading || profileLoading) {
