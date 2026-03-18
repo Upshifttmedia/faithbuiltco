@@ -99,6 +99,7 @@ export async function subscribeToPush(userId) {
  * Returns { error }
  */
 export async function unsubscribeFromPush(userId) {
+  console.log('[FaithBuilt] unsubscribeFromPush CALLED', new Error().stack)
   try {
     const reg = await navigator.serviceWorker.ready
     const pushSub = await reg.pushManager.getSubscription()
