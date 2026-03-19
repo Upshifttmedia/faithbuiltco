@@ -113,9 +113,11 @@ export function useAuth() {
     // is not readable by other users and won't populate the profiles table.
     if (!error && data?.user) {
       console.log('[FaithBuilt] saving display name:', displayName)
-      await supabase
+      const { data: upsertData, error: upsertError } = await supabase
         .from('profiles')
         .upsert({ id: data.user.id, display_name: displayName }, { onConflict: 'id' })
+        .select()
+      console.log('[FaithBuilt] signUp upsert result:', JSON.stringify(upsertData), JSON.stringify(upsertError))
     }
     return { data, error }
   }
