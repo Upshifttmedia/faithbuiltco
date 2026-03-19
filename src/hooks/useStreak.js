@@ -44,7 +44,31 @@ export function useStreak(userId) {
       .eq('user_id', userId)
       .maybeSingle()
 
-    if (data) setStreak(data)
+    if (data) {
+      const today = getLocalDate()
+      const gap   = data.last_completed_date
+        ? daysBetween(today, data.last_completed_date)
+        : 999
+
+      // If last completion was more than 1 day ago the streak is broken.
+      // Reset current_streak to 0 in state AND persist so the DB stays
+      // consistent — otherwise the stale value sits there until the user
+      // next completes all tasks and updateStreak runs.
+      if (gap > 1 && data.current_streak > 0) {
+        const reset = { ...data, current_streak: 0, grace_active: false }
+        setStreak(reset)
+        await supabase
+          .from('streaks')
+          .update({
+            current_streak: 0,
+            grace_active:   false,
+            updated_at:     new Date().toISOString(),
+          })
+          .eq('user_id', userId)
+      } else {
+        setStreak(data)
+      }
+    }
     setLoading(false)
   }, [userId])
 
