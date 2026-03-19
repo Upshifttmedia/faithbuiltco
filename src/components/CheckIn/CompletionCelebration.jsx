@@ -155,7 +155,7 @@ export default function CompletionCelebration({ streak, verse, onBack }) {
         </svg>
       </div>
 
-      <h2 className="celebration-title">Congratulations</h2>
+      <h2 className="celebration-title">You Showed Up.</h2>
       <p className="celebration-tagline">Alignment is built daily.</p>
 
       {streak > 0 && (

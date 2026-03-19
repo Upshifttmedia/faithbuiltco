@@ -82,8 +82,8 @@ export default function SignupForm({ onSignup, onResend, onSwitch }) {
 
   return (
     <form onSubmit={handleSubmit} className="auth-form">
-      <h2 className="auth-title">Start Your Journey</h2>
-      <p className="auth-subtitle">Create your FaithBuilt account</p>
+      <h2 className="auth-title">Begin the Work</h2>
+      <p className="auth-subtitle">The man you're becoming starts here.</p>
 
       {error && <div className="auth-error">{error}</div>}
 

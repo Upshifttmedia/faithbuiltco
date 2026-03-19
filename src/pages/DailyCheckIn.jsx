@@ -108,7 +108,7 @@ export default function DailyCheckIn({ navigate, userId, onAllComplete }) {
           />
         ) : (
           <>
-            <h2 className="section-heading">Your Daily Pillars</h2>
+            <h2 className="section-heading">Show Up Across All Four</h2>
             <div className="pillars-grid">
               {PILLARS.map(pillar => (
                 <PillarCard

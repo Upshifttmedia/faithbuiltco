@@ -5,12 +5,12 @@ const SLIDES = [
   {
     icon: '✦',
     title: 'Built on Four Pillars',
-    body: "Every day you'll check in across Faith, Body, Mind, and Stewardship \u2014 the four disciplines that build the man.",
+    body: "Every day you show up across Faith, Body, Mind, and Stewardship \u2014 four disciplines that forge the man you're becoming.",
   },
   {
     icon: '🔥',
-    title: 'Build Your Streak',
-    body: 'Complete all pillars each day to extend your streak. Consistency compounds. One day at a time.',
+    title: 'Consistency Is Character',
+    body: "Show up across all four pillars every day. Your streak is visible proof of who you're becoming.",
   },
   {
     icon: '◆',

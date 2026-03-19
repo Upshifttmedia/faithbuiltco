@@ -14,9 +14,9 @@ export default function NotificationPrompt({ reminderTime, onSave, onDismiss }) 
     <div className="prompt-overlay" role="dialog" aria-modal="true">
       <div className="prompt-sheet">
         <div className="prompt-icon">🔔</div>
-        <h2 className="prompt-title">Set Your Daily Reminder</h2>
+        <h2 className="prompt-title">Your Daily Call to Show Up</h2>
         <p className="prompt-body">
-          FaithBuilt will remind you to check in each day. We'll send you a nudge at your chosen time.
+          A push notification fires at your chosen time — no soft nudge, just the call. Show up when it fires.
         </p>
 
         <div className="prompt-time-wrap">

@@ -57,10 +57,10 @@ export default function Profile({ navigate }) {
           <p className="profile-section-title">Your 4 Pillars</p>
           <div className="profile-pillars">
             {[
-              { icon: '✦', name: 'Faith',       tasks: 'Morning Prayer · Scripture' },
-              { icon: '⚡', name: 'Body',        tasks: 'Exercise · Healthy Eating' },
-              { icon: '◈', name: 'Mind',         tasks: 'Reading · Gratitude' },
-              { icon: '◆', name: 'Stewardship',  tasks: 'Financial Review · Service' },
+              { icon: '✦', name: 'Faith',       tasks: 'Pray first. Open the Word.' },
+              { icon: '⚡', name: 'Body',        tasks: 'Move. Fuel. Repeat.' },
+              { icon: '◈', name: 'Mind',         tasks: 'Feed your mind. Guard your attention.' },
+              { icon: '◆', name: 'Stewardship',  tasks: 'Own your resources. Serve without agenda.' },
             ].map(p => (
               <div key={p.name} className="profile-pillar-row">
                 <span className="profile-pillar-icon">{p.icon}</span>

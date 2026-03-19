@@ -45,7 +45,7 @@ export default function History() {
                 ? 'Fully aligned'
                 : pc > 0
                   ? `${pc} / ${TOTAL_PILLARS} pillars`
-                  : day.isToday ? 'In progress' : 'Not yet'
+                  : day.isToday ? 'In progress' : 'Drifted'
 
               return (
                 <div

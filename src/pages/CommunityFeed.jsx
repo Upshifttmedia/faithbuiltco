@@ -63,10 +63,10 @@ export default function CommunityFeed() {
               className="composer-input"
               value={draft}
               onChange={handleDraftChange}
-              placeholder="Share a win from today…"
+              placeholder="What did you build today?"
               maxLength={200}
               rows={2}
-              aria-label="Share a win"
+              aria-label="Share what you built today"
             />
           </div>
           <div className="composer-footer">
@@ -94,8 +94,8 @@ export default function CommunityFeed() {
         ) : posts.length === 0 ? (
           <div className="feed-empty">
             <p className="feed-empty-icon">🔥</p>
-            <p className="feed-empty-title">Be the first today</p>
-            <p className="feed-empty-body">No wins posted yet. Share yours and inspire the community.</p>
+            <p className="feed-empty-title">Be the First</p>
+            <p className="feed-empty-body">No one's posted yet. Be the man who goes first.</p>
           </div>
         ) : (
           <div className="feed-list">

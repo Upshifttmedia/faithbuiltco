@@ -51,7 +51,7 @@ export default function Dashboard({ navigate, userId }) {
 
         {/* Greeting */}
         <div className="dashboard-greeting">
-          <p className="greeting-sub">Good to see you,</p>
+          <p className="greeting-sub">Back in the grind,</p>
           <h1 className="greeting-name">{displayName}</h1>
           <p className="greeting-date">{todayLabel}</p>
         </div>
@@ -119,7 +119,7 @@ export default function Dashboard({ navigate, userId }) {
               <span className="evening-card-icon">◈</span>
               <div>
                 <p className="evening-card-title">Evening Reflection</p>
-                <p className="evening-card-sub">How did today go?</p>
+                <p className="evening-card-sub">Close the day strong.</p>
               </div>
             </div>
             <span className="evening-card-arrow">›</span>

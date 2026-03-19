@@ -38,7 +38,7 @@ export default function LoginForm({ onLogin, onSwitch, onForgot, onResend }) {
   return (
     <form onSubmit={handleSubmit} className="auth-form">
       <h2 className="auth-title">Welcome Back</h2>
-      <p className="auth-subtitle">Sign in to continue your journey</p>
+      <p className="auth-subtitle">Sign in and get back to work.</p>
 
       {error && <div className="auth-error">{error}</div>}
 

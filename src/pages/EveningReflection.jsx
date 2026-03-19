@@ -48,8 +48,8 @@ export default function EveningReflection({ navigate, userId }) {
               {showedUp === 'yes'
                 ? 'You showed up. That matters more than you know.'
                 : showedUp === 'mostly'
-                ? "Progress over perfection. Keep going."
-                : "Tomorrow is a new day. Rest well. Rise strong."}
+                ? "You built something today. Growth lives in the gap. Keep going."
+                : "Grace lives here. Rest. Rise tomorrow stronger."}
             </p>
             <button className="btn-primary" onClick={() => navigate('dashboard')}>
               Back to Dashboard
@@ -71,9 +71,9 @@ export default function EveningReflection({ navigate, userId }) {
 
       <main className="main-content">
         <p className="evening-label">Evening Reflection</p>
-        <h2 className="evening-heading">How did today go?</h2>
+        <h2 className="evening-heading">Who showed up today?</h2>
         <p className="evening-sub">
-          Did you show up as who you committed to be this morning?
+          Hold the mirror. Did you become who you committed to be this morning?
         </p>
 
         {/* This morning's commitments */}
@@ -95,7 +95,7 @@ export default function EveningReflection({ navigate, userId }) {
 
         {/* Free-write journal */}
         <div className="evening-journal-wrap">
-          <p className="evening-section-label">What&apos;s on your mind?</p>
+          <p className="evening-section-label">What did today reveal about you?</p>
           <textarea
             className="evening-textarea"
             value={journal}
