@@ -57,14 +57,19 @@ export function useStreak(userId) {
       if (gap > 1 && data.current_streak > 0) {
         const reset = { ...data, current_streak: 0, grace_active: false }
         setStreak(reset)
-        await supabase
+        const { data: resetData, error: resetError } = await supabase
           .from('streaks')
-          .update({
-            current_streak: 0,
-            grace_active:   false,
-            updated_at:     new Date().toISOString(),
-          })
-          .eq('user_id', userId)
+          .upsert(
+            {
+              user_id:        userId,
+              current_streak: 0,
+              grace_active:   false,
+              updated_at:     new Date().toISOString(),
+            },
+            { onConflict: 'user_id' }
+          )
+          .select()
+        console.log('[FaithBuilt] streak reset write:', JSON.stringify(resetData), resetError ? JSON.stringify(resetError) : 'ok')
       } else {
         setStreak(data)
       }
