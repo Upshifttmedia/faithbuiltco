@@ -27,10 +27,12 @@ const COMMITMENT_OPTIONS = [
 
 const DEFAULT_IDENTITY = 'I am a man of faith, discipline, and character.'
 
-export default function Onboarding({ userId, displayName, onComplete }) {
+export default function Onboarding({ userId, onComplete }) {
   const [slide, setSlide]               = useState(0)
+  const [showName, setShowName]         = useState(false)
   const [showIdentity, setShowIdentity] = useState(false)
   const [showCommit, setShowCommit]     = useState(false)
+  const [name, setName]                 = useState('')
   const [commitment, setCommitment]     = useState(7)
   const [identity, setIdentity]         = useState(DEFAULT_IDENTITY)
 
@@ -38,7 +40,7 @@ export default function Onboarding({ userId, displayName, onComplete }) {
     if (slide < SLIDES.length - 1) {
       setSlide(slide + 1)
     } else {
-      setShowIdentity(true)
+      setShowName(true)
     }
   }
 
@@ -54,7 +56,7 @@ export default function Onboarding({ userId, displayName, onComplete }) {
         .upsert(
           {
             id: userId,
-            ...(displayName ? { display_name: displayName } : {}),
+            display_name: name.trim(),
             commitment_days: commitment,
             onboarding_done: true,
             identity_statement: identity.trim() || DEFAULT_IDENTITY,
@@ -64,6 +66,7 @@ export default function Onboarding({ userId, displayName, onComplete }) {
     }
   }
 
+  // ── Commitment screen ────────────────────────────────────────────────
   if (showCommit) {
     return (
       <div className="onboarding-screen">
@@ -97,6 +100,7 @@ export default function Onboarding({ userId, displayName, onComplete }) {
     )
   }
 
+  // ── Identity statement screen ────────────────────────────────────────
   if (showIdentity) {
     return (
       <div className="onboarding-screen">
@@ -122,7 +126,7 @@ export default function Onboarding({ userId, displayName, onComplete }) {
             This is who I am {'\u2192'}
           </button>
 
-          <button className="link-btn onboard-back" onClick={() => { setShowIdentity(false); setSlide(SLIDES.length - 1) }}>
+          <button className="link-btn onboard-back" onClick={() => { setShowIdentity(false); setShowName(true) }}>
             {'\u2190'} Back
           </button>
         </div>
@@ -130,6 +134,46 @@ export default function Onboarding({ userId, displayName, onComplete }) {
     )
   }
 
+  // ── Name screen ──────────────────────────────────────────────────────
+  if (showName) {
+    return (
+      <div className="onboarding-screen">
+        <div className="onboarding-commit">
+          <div className="onboard-icon">✦</div>
+          <h2 className="onboard-title">What's your name, Builder?</h2>
+          <p className="onboard-body">
+            This is how FaithBuilt will address you every day.
+          </p>
+
+          <div className="identity-field-wrap">
+            <input
+              className="field-input"
+              type="text"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder="First name"
+              maxLength={50}
+              autoFocus
+            />
+          </div>
+
+          <button
+            className="btn-primary onboard-btn"
+            onClick={() => setShowIdentity(true)}
+            disabled={!name.trim()}
+          >
+            That's me {'\u2192'}
+          </button>
+
+          <button className="link-btn onboard-back" onClick={() => { setShowName(false); setSlide(SLIDES.length - 1) }}>
+            {'\u2190'} Back
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Intro slides ─────────────────────────────────────────────────────
   const current = SLIDES[slide]
 
   return (
