@@ -109,6 +109,13 @@ export function useAuth() {
         emailRedirectTo: SITE_URL,
       },
     })
+    // Write display_name to profiles immediately — auth user_metadata alone
+    // is not readable by other users and won't populate the profiles table.
+    if (!error && data?.user) {
+      await supabase
+        .from('profiles')
+        .upsert({ id: data.user.id, display_name: displayName }, { onConflict: 'id' })
+    }
     return { data, error }
   }
 

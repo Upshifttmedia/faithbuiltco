@@ -27,7 +27,7 @@ const COMMITMENT_OPTIONS = [
 
 const DEFAULT_IDENTITY = 'I am a man of faith, discipline, and character.'
 
-export default function Onboarding({ userId, onComplete }) {
+export default function Onboarding({ userId, displayName, onComplete }) {
   const [slide, setSlide]               = useState(0)
   const [showIdentity, setShowIdentity] = useState(false)
   const [showCommit, setShowCommit]     = useState(false)
@@ -54,6 +54,7 @@ export default function Onboarding({ userId, onComplete }) {
         .upsert(
           {
             id: userId,
+            ...(displayName ? { display_name: displayName } : {}),
             commitment_days: commitment,
             onboarding_done: true,
             identity_statement: identity.trim() || DEFAULT_IDENTITY,

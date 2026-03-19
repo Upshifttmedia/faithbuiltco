@@ -112,6 +112,7 @@ export default function App() {
     return (
       <Onboarding
         userId={user.id}
+        displayName={user.user_metadata?.display_name || ''}
         onComplete={() => {
           markOnboardingDone()
           navigate('dashboard')
