@@ -6,12 +6,13 @@
  * that returns the UTC date which can differ from the user's local date.
  */
 
-/** Returns "YYYY-MM-DD" in the user's LOCAL timezone */
+/** Returns "YYYY-MM-DD" in the user's LOCAL timezone.
+ *  Uses Intl explicitly so DST and non-UTC offsets are handled correctly.
+ *  en-CA locale formats as YYYY-MM-DD natively. */
 export function getLocalDate(d = new Date()) {
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
+  return d.toLocaleDateString('en-CA', {
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  })
 }
 
 /** Returns local date string for N days ago (0 = today, 1 = yesterday, …) */
