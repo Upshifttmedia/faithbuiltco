@@ -85,13 +85,14 @@ export function useDailyCommit(userId) {
 
   // ── Toggle a pillar back to unconfirmed ──────────────────────────────
   async function unconfirmPillar(pillarKey) {
-    if (!commit) return null
+    if (!userId || !commit) return null
 
-    const field = `${pillarKey}_confirmed`
+    const today = getLocalDate()
     const { data, error } = await supabase
       .from('daily_commits')
-      .update({ [field]: false })
-      .eq('id', commit.id)
+      .update({ [`${pillarKey}_confirmed`]: false })
+      .eq('user_id', userId)
+      .eq('commit_date', today)
       .select()
       .single()
 

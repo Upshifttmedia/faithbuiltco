@@ -176,10 +176,9 @@ function PillarCheckCard({ pillar, commitment, confirmed, animating, onConfirm }
         </p>
       </div>
 
-      {/* Circular checkmark button */}
+      {/* Circular checkmark button — always clickable so confirmed pillars can be toggled off */}
       <button
         onClick={onConfirm}
-        disabled={confirmed}
         style={{
           flexShrink: 0,
           width: 36, height: 36,
