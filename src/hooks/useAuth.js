@@ -55,10 +55,36 @@ export function useAuth() {
     const type      = params.get('type')
 
     if (tokenHash && type) {
+      // A new signup confirmation — clear any stale onboarding flag so the
+      // new user sees onboarding, not a cached state from a previous user.
+      if (type === 'signup') {
+        localStorage.removeItem('fb_onboarding_done')
+      }
+
       supabase.auth.verifyOtp({ token_hash: tokenHash, type }).then(({ data, error }) => {
         if (!error && data?.session) {
-          setUser(data.session.user)
-          fetchProfile(data.session.user.id)
+          const u = data.session.user
+          setUser(u)
+
+          // BUG 1 FIX: save display_name now that we have an authenticated session.
+          // The upsert in signUp() runs before email is confirmed — no session yet —
+          // so RLS (auth.uid() = id) silently blocks it. Here the session is valid.
+          const displayName = u.user_metadata?.display_name
+          if (displayName) {
+            supabase
+              .from('profiles')
+              .upsert({ id: u.id, display_name: displayName }, { onConflict: 'id' })
+              .select()
+              .then(({ data: d, error: e }) =>
+                console.log('[FaithBuilt] display_name saved on confirm:', JSON.stringify(d), e ? JSON.stringify(e) : 'ok')
+              )
+          }
+
+          fetchProfile(u.id)
+          // BUG 2 FIX: mark as fetched so onAuthStateChange SIGNED_IN (which fires
+          // right after verifyOtp) does not trigger a second fetchProfile call.
+          profileFetchedOnce.current = true
+
           if (type === 'recovery') setAuthEvent('PASSWORD_RECOVERY')
         }
         // Clean the URL so a reload doesn't re-trigger
@@ -109,10 +135,13 @@ export function useAuth() {
         emailRedirectTo: SITE_URL,
       },
     })
-    // Write display_name to profiles immediately — auth user_metadata alone
-    // is not readable by other users and won't populate the profiles table.
-    if (!error && data?.user) {
-      console.log('[FaithBuilt] saving display name:', displayName)
+    // Attempt to write display_name immediately. This only succeeds when
+    // Supabase is configured for instant signup (no email confirmation) because
+    // that's the only case where data.session exists here. When email confirmation
+    // is required there is no session yet and RLS will block this — the
+    // verifyOtp handler in the useEffect picks it up instead.
+    if (!error && data?.user && data?.session) {
+      console.log('[FaithBuilt] instant confirm — saving display name:', displayName)
       const { data: upsertData, error: upsertError } = await supabase
         .from('profiles')
         .upsert({ id: data.user.id, display_name: displayName }, { onConflict: 'id' })
