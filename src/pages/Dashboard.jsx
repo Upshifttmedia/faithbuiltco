@@ -3,7 +3,6 @@ import { useAuth } from '../hooks/useAuth'
 import { useStreak } from '../hooks/useStreak'
 import { useDailyCommit } from '../hooks/useDailyCommit'
 import ArmorShield from '../components/Dashboard/ArmorShield'
-import CrossIcon from '../components/CrossIcon'
 
 const EVENING_HOUR = 18  // 6 pm local
 
@@ -46,18 +45,25 @@ function ShieldWithStats({ commit, streak }) {
         stewardshipConfirmed={!!commit?.stewardship_confirmed}
       />
 
-      {/* Stats row: current streak | divider | best */}
+      {/* Stats row: current streak (left) | divider | best (right) */}
       <div style={{
-        display: 'flex', alignItems: 'center',
-        width: 200, marginTop: 16,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        width: '100%', marginTop: 20,
       }}>
-        {/* Left — current streak */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-          <span style={{ fontSize: 20, lineHeight: 1 }}>🔥</span>
-          <span style={{ fontSize: 30, fontWeight: 900, color: '#C9A84C', lineHeight: 1 }}>
-            {streak.current_streak}
-          </span>
-          <span style={{ fontSize: 11, color: '#666', letterSpacing: 0.5, textAlign: 'center' }}>
+        {/* Left — current streak: [number][cross image] then label below */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 36, fontWeight: 900, color: '#C9A84C', lineHeight: 1 }}>
+              {streak.current_streak}
+            </span>
+            <img
+              src="/pickupyourcross.png"
+              width={32} height={32}
+              alt=""
+              style={{ display: 'block', objectFit: 'contain' }}
+            />
+          </div>
+          <span style={{ fontSize: 11, color: '#666', letterSpacing: 0.5, marginTop: 5 }}>
             day streak{streak.grace_active && <span title="Grace day active — streak protected"> 🛡</span>}
           </span>
         </div>
@@ -65,12 +71,12 @@ function ShieldWithStats({ commit, streak }) {
         {/* Vertical divider */}
         <div style={{ width: 1, height: 52, background: 'rgba(255,255,255,0.1)', flexShrink: 0 }} />
 
-        {/* Right — best streak */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-          <span style={{ fontSize: 30, fontWeight: 900, color: '#fff', lineHeight: 1 }}>
+        {/* Right — best streak: number then label below */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+          <span style={{ fontSize: 36, fontWeight: 900, color: '#fff', lineHeight: 1 }}>
             {streak.longest_streak}
           </span>
-          <span style={{ fontSize: 11, color: '#666', letterSpacing: 1, textTransform: 'uppercase' }}>
+          <span style={{ fontSize: 11, color: '#666', letterSpacing: 1, textTransform: 'uppercase', marginTop: 5 }}>
             Best
           </span>
         </div>
@@ -438,7 +444,7 @@ export default function Dashboard({ navigate, userId }) {
 
       <header className="top-bar">
         <div className="brand">
-          <CrossIcon size={18} color="white" />
+          <span className="brand-mark">✦</span>
           <span className="brand-name">FaithBuilt</span>
         </div>
       </header>
