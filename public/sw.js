@@ -9,37 +9,50 @@ self.addEventListener('activate', e => {
   e.waitUntil(self.clients.claim())
 })
 
-// Open (or focus) the app when user taps the notification
-self.addEventListener('notificationclick', e => {
-  e.notification.close()
-  const targetUrl = e.notification.data?.url || '/'
-  e.waitUntil(
-    self.clients
-      .matchAll({ type: 'window', includeUncontrolled: true })
-      .then(clientList => {
-        // If a window is already open, navigate it to the target URL
-        if (clientList.length > 0) {
-          const client = clientList[0]
-          client.navigate(targetUrl)
-          return client.focus()
-        }
-        return self.clients.openWindow(targetUrl)
-      })
+// ── Web Push ─────────────────────────────────────────────────────────────
+self.addEventListener('push', (event) => {
+  if (!event.data) return
+
+  const data = event.data.json()
+
+  const options = {
+    body: data.body || 'Time to show up.',
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    tag: data.tag || 'faithbuilt-reminder',
+    renotify: true,
+    requireInteraction: true,
+    data: {
+      url: data.url || '/'
+    },
+    actions: [
+      {
+        action: 'open',
+        title: 'Open FaithBuilt'
+      }
+    ]
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(data.title || 'FaithBuilt', options)
   )
 })
 
-// ── Web Push ─────────────────────────────────────────────────────────────
-// Receive a server-sent push payload and display a native notification.
-self.addEventListener('push', e => {
-  const data = e.data?.json() || {}
-  e.waitUntil(
-    self.registration.showNotification(data.title || 'FaithBuilt', {
-      body:      data.body || 'Your alignment starts now. Open FaithBuilt.',
-      icon:      '/icon-192.png',
-      badge:     '/icon-192.png',
-      tag:       data.tag  || 'faithbuilt-push',
-      renotify:  true,
-      data:      { url: data.url || '/' },
-    })
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  const url = event.notification.data?.url || '/'
+  const fullUrl = self.location.origin + url
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then((clientList) => {
+        for (const client of clientList) {
+          if (client.url.includes(self.location.origin) && 'focus' in client) {
+            client.postMessage({ type: 'NAVIGATE', url: url })
+            return client.focus()
+          }
+        }
+        return clients.openWindow(fullUrl)
+      })
   )
 })
