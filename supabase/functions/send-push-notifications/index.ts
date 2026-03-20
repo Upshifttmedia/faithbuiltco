@@ -69,10 +69,12 @@ Deno.serve(async (_req) => {
 
   try {
     const rows = await fetchSubscriptions()
+    console.log('Subscriptions found:', rows.length)
 
     await Promise.allSettled(
       rows.map(async (row) => {
         const currentTime = getCurrentHHMM(row.timezone)
+        console.log('Checking user:', row.user_id, 'current time:', currentTime, 'morning:', row.morning_time, 'evening:', row.evening_time)
 
         let notification: { title: string; body: string; url: string } | null = null
 
@@ -90,7 +92,11 @@ Deno.serve(async (_req) => {
           }
         }
 
-        if (!notification) { skipped++; return }
+        if (!notification) {
+          console.log('Skipped user:', row.user_id, 'time mismatch')
+          skipped++
+          return
+        }
 
         try {
           await webpush.sendNotification(
@@ -102,6 +108,7 @@ Deno.serve(async (_req) => {
               tag:   'faithbuilt-push',
             })
           )
+          console.log('Sent to:', row.user_id)
           sent++
         } catch (err) {
           // Log per-subscription errors but don't crash the whole function
