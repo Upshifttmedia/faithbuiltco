@@ -24,15 +24,17 @@ function isoWeekStart(dateStr) {
   return `${y}-${m}-${dd}`
 }
 
+const MILESTONES = [7, 14, 21, 30]
+
 // ─────────────────────────────────────────────────────────────────────
 
 export function useStreak(userId) {
   const [streak, setStreak] = useState({
-    current_streak:  0,
-    longest_streak:  0,
-    grace_days_used: 0,
+    current_streak:   0,
+    longest_streak:   0,
+    grace_days_used:  0,
     grace_week_start: null,
-    grace_active:    false,
+    grace_active:     false,
   })
   const [loading, setLoading] = useState(true)
 
@@ -50,11 +52,16 @@ export function useStreak(userId) {
         ? daysBetween(today, data.last_completed_date)
         : 999
 
-      // If last completion was more than 1 day ago the streak is broken.
-      // Reset current_streak to 0 in state AND persist so the DB stays
-      // consistent — otherwise the stale value sits there until the user
-      // next completes all tasks and updateStreak runs.
-      if (gap > 1 && data.current_streak > 0) {
+      // Reset rules (respects grace_active so a one-day miss with grace
+      // applied doesn't get wiped on the next app open):
+      //   gap > 2                       → always reset (too many missed days)
+      //   gap > 1 && !grace_active      → reset (missed with no grace available)
+      //   gap > 1 && grace_active       → do NOT reset (grace covers gap of 2)
+      const shouldReset =
+        data.current_streak > 0 &&
+        (gap > 2 || (gap > 1 && !data.grace_active))
+
+      if (shouldReset) {
         const reset = { ...data, current_streak: 0, grace_active: false }
         setStreak(reset)
         const { data: resetData, error: resetError } = await supabase
@@ -79,11 +86,12 @@ export function useStreak(userId) {
 
   useEffect(() => { fetchStreak() }, [fetchStreak])
 
+  // ── Legacy updateStreak (kept for any existing callers) ──────────────
   async function updateStreak(allTasksCompleted) {
     if (!userId || !allTasksCompleted) return
 
     const today     = getLocalDate()
-    const yesterday = getLocalDateOffset(1)
+    const yesterday = getLocalDateOffset(1) // eslint-disable-line no-unused-vars
 
     const { data: existing } = await supabase
       .from('streaks')
@@ -91,7 +99,6 @@ export function useStreak(userId) {
       .eq('user_id', userId)
       .maybeSingle()
 
-    // Already counted today
     if (existing?.last_completed_date === today) return
 
     let newStreak      = 1
@@ -103,53 +110,110 @@ export function useStreak(userId) {
       const gap = daysBetween(today, existing.last_completed_date)
 
       if (gap === 1) {
-        // ── Normal consecutive day ───────────────────────────────────
         newStreak   = (existing.current_streak || 0) + 1
         graceActive = false
-        // Reset grace counter if new week started
         const thisWeek = isoWeekStart(today)
-        if (graceWeekStart !== thisWeek) {
-          graceWeekStart = thisWeek
-          graceDaysUsed  = 0
-        }
+        if (graceWeekStart !== thisWeek) { graceWeekStart = thisWeek; graceDaysUsed = 0 }
       } else if (gap === 2) {
-        // ── Missed exactly 1 day — check grace ──────────────────────
         const thisWeek       = isoWeekStart(today)
         const graceSameWeek  = graceWeekStart === thisWeek
         const graceAvailable = !graceSameWeek || graceDaysUsed < 1
-
         if (graceAvailable) {
-          // Protect the streak with a grace day
           newStreak      = (existing.current_streak || 0) + 1
           graceActive    = true
           graceWeekStart = thisWeek
           graceDaysUsed  = graceSameWeek ? graceDaysUsed + 1 : 1
         } else {
-          // Grace already used this week — streak resets
-          newStreak      = 1
-          graceActive    = false
-          graceWeekStart = thisWeek
-          graceDaysUsed  = 0
+          newStreak = 1; graceActive = false
+          graceWeekStart = thisWeek; graceDaysUsed = 0
         }
       } else {
-        // ── Gap > 2 days — full reset ────────────────────────────────
-        newStreak      = 1
-        graceActive    = false
-        graceWeekStart = isoWeekStart(today)
-        graceDaysUsed  = 0
+        newStreak = 1; graceActive = false
+        graceWeekStart = isoWeekStart(today); graceDaysUsed = 0
       }
     }
 
     const newLongest = Math.max(newStreak, existing?.longest_streak || 0)
+    const payload = {
+      user_id: userId, current_streak: newStreak, longest_streak: newLongest,
+      last_completed_date: today, grace_active: graceActive,
+      grace_days_used: graceDaysUsed, grace_week_start: graceWeekStart,
+      updated_at: new Date().toISOString(),
+    }
+    const { data } = await supabase
+      .from('streaks').upsert(payload, { onConflict: 'user_id' }).select().single()
+    if (data) setStreak(data)
+  }
+
+  // ── Evening streak update ────────────────────────────────────────────
+  // Called at end of evening reflection with count of confirmed pillars.
+  //   confirmedCount 4   → full day  → streak + 1,  grace_active = false
+  //   confirmedCount 3   → partial   → streak + 1,  grace_active = true
+  //   confirmedCount ≤ 2 → missed    → no increment; first miss sets grace,
+  //                                    second consecutive miss resets to 0
+  //
+  // Returns { newStreak, isMilestone, resultType }
+  async function updateStreakFromEvening(confirmedCount) {
+    if (!userId) return null
+
+    const today = getLocalDate()
+
+    const { data: existing } = await supabase
+      .from('streaks')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle()
+
+    // Guard against double-counting the same day
+    if (existing?.last_completed_date === today && confirmedCount >= 3) return {
+      newStreak: existing.current_streak,
+      isMilestone: false,
+      resultType: confirmedCount >= 4 ? 'full' : 'partial',
+    }
+
+    const currentStreak  = existing?.current_streak  ?? 0
+    const currentLongest = existing?.longest_streak  ?? 0
+    const graceWasActive = existing?.grace_active     ?? false
+
+    let newStreak   = currentStreak
+    let graceActive = graceWasActive
+    let lastDate    = existing?.last_completed_date ?? null
+    let resultType
+
+    if (confirmedCount >= 4) {
+      // Full day
+      newStreak   = currentStreak + 1
+      graceActive = false
+      lastDate    = today
+      resultType  = 'full'
+    } else if (confirmedCount === 3) {
+      // Partial — still counts, grace noted
+      newStreak   = currentStreak + 1
+      graceActive = true
+      lastDate    = today
+      resultType  = 'partial'
+    } else {
+      // Missed (≤ 2 pillars)
+      resultType = 'missed'
+      if (graceWasActive) {
+        // Second consecutive miss — reset
+        newStreak   = 0
+        graceActive = false
+      } else {
+        // First miss — apply grace, preserve streak, don't update lastDate
+        graceActive = true
+        // newStreak and lastDate unchanged
+      }
+    }
+
+    const newLongest = Math.max(newStreak, currentLongest)
 
     const payload = {
       user_id:             userId,
       current_streak:      newStreak,
       longest_streak:      newLongest,
-      last_completed_date: today,
+      last_completed_date: lastDate,
       grace_active:        graceActive,
-      grace_days_used:     graceDaysUsed,
-      grace_week_start:    graceWeekStart,
       updated_at:          new Date().toISOString(),
     }
 
@@ -160,7 +224,10 @@ export function useStreak(userId) {
       .single()
 
     if (data) setStreak(data)
+
+    const isMilestone = MILESTONES.includes(newStreak)
+    return { newStreak, isMilestone, resultType }
   }
 
-  return { streak, loading, updateStreak, refetch: fetchStreak }
+  return { streak, loading, updateStreak, updateStreakFromEvening, refetch: fetchStreak }
 }

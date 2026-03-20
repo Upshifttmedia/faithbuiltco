@@ -1,43 +1,289 @@
+import { useState, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { useStreak } from '../hooks/useStreak'
-import { useHistory } from '../hooks/useHistory'
-import WeekRow from '../components/Streak/WeekRow'
-import MotivationalBanner from '../components/Dashboard/MotivationalBanner'
-import ChallengeCard from '../components/Dashboard/ChallengeCard'
-import CalendarGrid from '../components/Dashboard/CalendarGrid'
+import { useDailyCommit } from '../hooks/useDailyCommit'
 
-const EVENING_HOUR = 18  // show evening card after 6pm
+const EVENING_HOUR = 18  // 6 pm local
+
+const PILLARS = [
+  { key: 'faith',       icon: '✦', label: 'Faith',       desc: 'Scripture and prayer' },
+  { key: 'body',        icon: '⚡', label: 'Body',        desc: 'Move your body 20+ minutes' },
+  { key: 'mind',        icon: '◈', label: 'Mind',        desc: 'Remove distraction, raise standards' },
+  { key: 'stewardship', icon: '◆', label: 'Stewardship', desc: 'Own your responsibilities' },
+]
+
+// Greeting based on local hour
+function getGreeting() {
+  const h = new Date().getHours()
+  if (h < 12) return 'Good morning,'
+  if (h < 17) return 'Good afternoon,'
+  return 'Good evening,'
+}
 
 const todayLabel = new Date().toLocaleDateString('en-US', {
   weekday: 'long', month: 'long', day: 'numeric',
 })
 
-// ✅ First name only — never fall back to email prefix
-function getFirstName(user) {
-  const name = (user?.user_metadata?.display_name ?? '').trim()
-  if (name) return name.split(/\s+/)[0]
-  return 'Friend'
+// Keyframe CSS injected once
+const ANIMATIONS = `
+  @keyframes db-fade  { from { opacity:0; transform:translateY(10px) } to { opacity:1; transform:translateY(0) } }
+  @keyframes db-pulse { 0%,100% { opacity:1 } 50% { opacity:0.55 } }
+  @keyframes db-flash { 0% { background:rgba(201,168,76,0) } 40% { background:rgba(201,168,76,0.25) } 100% { background:rgba(201,168,76,0) } }
+  @keyframes db-pop   { 0% { transform:scale(1) } 35% { transform:scale(1.18) } 70% { transform:scale(0.95) } 100% { transform:scale(1) } }
+  @keyframes db-glow  { 0%,100% { box-shadow:0 0 0 0 rgba(201,168,76,0.3) } 50% { box-shadow:0 0 16px 4px rgba(201,168,76,0.5) } }
+`
+
+// ── Streak card ──────────────────────────────────────────────────────
+function StreakCard({ streak }) {
+  return (
+    <div className="streak-callout">
+      <div className="streak-callout-left">
+        <span className="streak-callout-flame">🔥</span>
+        <div>
+          <div className="streak-callout-number">{streak.current_streak}</div>
+          <div className="streak-callout-label">
+            day streak
+            {streak.grace_active && (
+              <span className="grace-shield" title="Grace day active — streak protected"> 🛡</span>
+            )}
+          </div>
+        </div>
+      </div>
+      <div className="streak-callout-right">
+        <div className="streak-best-num">{streak.longest_streak}</div>
+        <div className="streak-best-label">best</div>
+      </div>
+    </div>
+  )
 }
 
-// Pillar context shown on dashboard so users know what they're doing
-const PILLAR_PREVIEWS = [
-  { icon: '✦', label: 'Faith',       desc: 'Scripture and prayer' },
-  { icon: '⚡', label: 'Body',        desc: 'Move your body 20+ minutes' },
-  { icon: '◈', label: 'Mind',         desc: 'Remove distraction, raise standards' },
-  { icon: '◆', label: 'Stewardship',  desc: 'Own your responsibilities' },
-]
+// ── Review modal ─────────────────────────────────────────────────────
+function ReviewModal({ commit, onClose }) {
+  const confirmedCount = PILLARS.filter(p => commit[`${p.key}_confirmed`]).length
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0,
+      background: 'rgba(0,0,0,0.92)',
+      zIndex: 80,
+      overflowY: 'auto',
+      padding: '24px 20px 60px',
+      display: 'flex', flexDirection: 'column',
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <h2 style={{ margin: 0, color: '#fff', fontSize: 20, fontWeight: 700 }}>Today's Commitments</h2>
+        <button
+          onClick={onClose}
+          style={{ background: 'none', border: 'none', color: '#888', fontSize: 24, cursor: 'pointer', padding: '4px 8px' }}
+        >
+          ✕
+        </button>
+      </div>
+
+      <p style={{ color: '#555', fontSize: 13, margin: '0 0 20px' }}>
+        {confirmedCount}/4 pillars confirmed
+      </p>
+
+      {PILLARS.map(p => {
+        const text      = commit[`${p.key}_commitment`] ?? ''
+        const confirmed = !!commit[`${p.key}_confirmed`]
+        return (
+          <div key={p.key} style={{
+            background: confirmed ? 'rgba(201,168,76,0.07)' : 'rgba(255,255,255,0.03)',
+            border: `1px solid ${confirmed ? 'rgba(201,168,76,0.25)' : 'rgba(255,255,255,0.07)'}`,
+            borderRadius: 12, padding: '14px 16px', marginBottom: 12,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span style={{ fontSize: 20, minWidth: 24 }}>{p.icon}</span>
+              <div style={{ flex: 1 }}>
+                <p style={{ margin: '0 0 4px', fontSize: 12, color: '#C9A84C', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1 }}>
+                  {p.label}
+                </p>
+                <p style={{ margin: 0, color: '#ccc', fontSize: 14, lineHeight: 1.5 }}>
+                  {text || <span style={{ color: '#444', fontStyle: 'italic' }}>No commitment recorded</span>}
+                </p>
+              </div>
+              {confirmed && (
+                <span style={{ color: '#4DD9C0', fontSize: 18, flexShrink: 0 }}>✓</span>
+              )}
+            </div>
+          </div>
+        )
+      })}
+
+      <button className="btn-primary" style={{ marginTop: 16 }} onClick={onClose}>
+        Close
+      </button>
+    </div>
+  )
+}
+
+// ── All-4 celebration overlay ────────────────────────────────────────
+function AllFourOverlay({ onDone }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 3000)
+    return () => clearTimeout(t)
+  }, [onDone])
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, background: '#000',
+      zIndex: 90, display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+      textAlign: 'center', padding: '0 32px',
+    }}>
+      <div style={{ fontSize: 80, animation: 'db-pop 0.5s ease, db-glow 1.5s ease 0.4s infinite' }}>
+        🔥
+      </div>
+      <h1 style={{ color: '#C9A84C', fontSize: 36, fontWeight: 900, margin: '24px 0 12px', letterSpacing: 2 }}>
+        All four.
+      </h1>
+      <p style={{ color: '#888', fontSize: 17 }}>
+        You showed up today. Finish strong tonight.
+      </p>
+    </div>
+  )
+}
+
+// ── Pillar checkmark card (day phase) ────────────────────────────────
+function PillarCheckCard({ pillar, commitment, confirmed, animating, onConfirm }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'flex-start', gap: 14,
+      background: confirmed
+        ? 'rgba(201,168,76,0.08)'
+        : 'rgba(255,255,255,0.03)',
+      border: `1px solid ${confirmed ? 'rgba(201,168,76,0.3)' : 'rgba(255,255,255,0.07)'}`,
+      borderRadius: 14,
+      padding: '16px 14px',
+      marginBottom: 10,
+      transition: 'background 0.3s ease, border-color 0.3s ease',
+      animation: animating ? 'db-flash 0.4s ease' : undefined,
+    }}>
+      <div style={{ flex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+          <span style={{ fontSize: 16 }}>{pillar.icon}</span>
+          <p style={{
+            margin: 0, fontSize: 12, fontWeight: 700,
+            color: '#C9A84C', textTransform: 'uppercase', letterSpacing: 1,
+          }}>
+            {pillar.label}
+          </p>
+        </div>
+        <p style={{ margin: 0, color: '#bbb', fontSize: 14, lineHeight: 1.55 }}>
+          {commitment || <span style={{ color: '#444', fontStyle: 'italic' }}>No commitment recorded</span>}
+        </p>
+      </div>
+
+      {/* Circular checkmark button */}
+      <button
+        onClick={onConfirm}
+        disabled={confirmed}
+        style={{
+          flexShrink: 0,
+          width: 36, height: 36,
+          borderRadius: '50%',
+          border: `2px solid ${confirmed ? '#C9A84C' : 'rgba(255,255,255,0.18)'}`,
+          background: confirmed ? '#C9A84C' : 'transparent',
+          color: confirmed ? '#000' : 'rgba(255,255,255,0.3)',
+          fontSize: 16, fontWeight: 700,
+          cursor: confirmed ? 'default' : 'pointer',
+          transition: 'all 0.25s ease',
+          animation: animating ? 'db-pop 0.35s ease' : undefined,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          marginTop: 2,
+        }}
+        aria-label={confirmed ? `${pillar.label} confirmed` : `Confirm ${pillar.label}`}
+      >
+        ✓
+      </button>
+    </div>
+  )
+}
+
+// ── Greyed-out morning preview card ─────────────────────────────────
+function PillarPreviewCard({ pillar, text }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 14,
+      background: 'rgba(255,255,255,0.02)',
+      border: '1px solid rgba(255,255,255,0.05)',
+      borderRadius: 14,
+      padding: '14px',
+      marginBottom: 8,
+      opacity: 0.6,
+    }}>
+      <span style={{ fontSize: 20, minWidth: 24 }}>{pillar.icon}</span>
+      <div>
+        <p style={{ margin: '0 0 3px', fontSize: 11, color: '#666', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1 }}>
+          {pillar.label}
+        </p>
+        <p style={{ margin: 0, color: '#555', fontSize: 13, lineHeight: 1.5, fontStyle: text ? 'normal' : 'italic' }}>
+          {text || pillar.desc}
+        </p>
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────
 
 export default function Dashboard({ navigate, userId }) {
-  const { user } = useAuth()
-  const { streak } = useStreak(userId)
-  const { days, calendarDays, loading } = useHistory(userId)
+  const { user, profile }                   = useAuth()
+  const { streak }                          = useStreak(userId)
+  const { commit, yesterdayCommit, loading, confirmPillar } = useDailyCommit(userId)
 
-  const todayIsComplete = days.find(d => d.isToday)?.isComplete ?? false
-  const displayName    = getFirstName(user)
-  const showEveningCard = new Date().getHours() >= EVENING_HOUR
+  const [animating, setAnimating]   = useState(null)   // pillar key being animated
+  const [showAllFour, setShowAllFour] = useState(false)
+  const [showReview, setShowReview]   = useState(false)
+
+  const displayName = profile?.display_name
+    || user?.user_metadata?.display_name
+    || 'Builder'
+
+  const isEvening = new Date().getHours() >= EVENING_HOUR
+
+  // Derive phase from commit state
+  const phase = !commit?.morning_done
+    ? 'morning'
+    : !commit?.evening_done
+      ? 'day'
+      : 'done'
+
+  // Count confirmed pillars
+  const confirmedCount = commit
+    ? PILLARS.filter(p => commit[`${p.key}_confirmed`]).length
+    : 0
+
+  async function handleConfirm(pillarKey) {
+    if (!commit || commit[`${pillarKey}_confirmed`]) return
+    setAnimating(pillarKey)
+    const updated = await confirmPillar(pillarKey)
+    setTimeout(() => setAnimating(null), 400)
+
+    // Check if all 4 are now confirmed
+    if (updated) {
+      const nowCount = PILLARS.filter(p => updated[`${p.key}_confirmed`]).length
+      if (nowCount === 4) setShowAllFour(true)
+    }
+  }
+
+  if (loading) {
+    return <div className="loader-screen"><div className="loader-icon">✦</div></div>
+  }
 
   return (
     <div className="app-shell">
+      <style>{ANIMATIONS}</style>
+
+      {/* All-4 celebration overlay */}
+      {showAllFour && <AllFourOverlay onDone={() => setShowAllFour(false)} />}
+
+      {/* Review modal */}
+      {showReview && commit && (
+        <ReviewModal commit={commit} onClose={() => setShowReview(false)} />
+      )}
+
       <header className="top-bar">
         <div className="brand">
           <span className="brand-mark">✦</span>
@@ -46,111 +292,166 @@ export default function Dashboard({ navigate, userId }) {
       </header>
 
       <main className="main-content">
-        {/* Daily motivational banner */}
-        <MotivationalBanner />
 
-        {/* Greeting */}
-        <div className="dashboard-greeting">
-          <p className="greeting-sub">Back in the grind,</p>
-          <h1 className="greeting-name">{displayName}</h1>
-          <p className="greeting-date">{todayLabel}</p>
-        </div>
-
-        {/* Today's Challenge */}
-        <ChallengeCard />
-
-        {/* Streak Callout */}
-        <div className="streak-callout">
-          <div className="streak-callout-left">
-            <span className="streak-callout-flame">🔥</span>
-            <div>
-              <div className="streak-callout-number">{streak.current_streak}</div>
-              <div className="streak-callout-label">
-                day streak
-                {streak.grace_active && (
-                  <span className="grace-shield" title="Grace day active — streak protected">🛡</span>
-                )}
-              </div>
+        {/* ── MORNING PHASE ─────────────────────────────────────────── */}
+        {phase === 'morning' && (
+          <>
+            {/* Greeting */}
+            <div className="dashboard-greeting" style={{ animation: 'db-fade 0.4s ease' }}>
+              <p className="greeting-sub">{getGreeting()}</p>
+              <h1 className="greeting-name">{displayName}</h1>
+              <p className="greeting-date">{todayLabel}</p>
+              <p style={{ color: '#888', fontSize: 15, margin: '8px 0 0', fontStyle: 'italic' }}>
+                What are you committing to today?
+              </p>
             </div>
-          </div>
-          <div className="streak-callout-right">
-            <div className="streak-best-num">{streak.longest_streak}</div>
-            <div className="streak-best-label">best</div>
-          </div>
-        </div>
 
-        {/* 7-Day Week Row */}
-        <div className="week-section">
-          <p className="week-section-label">Last 7 Days</p>
-          {loading ? (
-            <div className="week-row-skeleton" />
-          ) : (
-            <WeekRow days={days} />
-          )}
-        </div>
+            {/* Primary CTA */}
+            <button
+              className="btn-primary btn-cta"
+              style={{
+                marginTop: 24, marginBottom: 24,
+                background: '#C9A84C', color: '#000',
+                fontWeight: 800, fontSize: 17, letterSpacing: 0.5,
+              }}
+              onClick={() => navigate('checkin')}
+            >
+              Begin Your Morning
+            </button>
 
-        {/* CTA */}
-        <div className="dashboard-cta">
-          {todayIsComplete ? (
-            <div className="cta-complete">
-              <span className="cta-complete-icon">✓</span>
+            {/* Streak */}
+            <StreakCard streak={streak} />
+
+            {/* Yesterday's pillars (greyed out) */}
+            <div style={{ marginTop: 24 }}>
+              <p className="section-heading" style={{ marginBottom: 12 }}>Today's Pillars</p>
+              {PILLARS.map(p => (
+                <PillarPreviewCard
+                  key={p.key}
+                  pillar={p}
+                  text={yesterdayCommit?.[`${p.key}_commitment`] ?? ''}
+                />
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* ── DAY PHASE ─────────────────────────────────────────────── */}
+        {phase === 'day' && (
+          <>
+            {/* Status card */}
+            <div style={{
+              background: 'rgba(201,168,76,0.06)',
+              border: '1px solid rgba(201,168,76,0.2)',
+              borderRadius: 14, padding: '18px 16px',
+              marginBottom: 20,
+              animation: 'db-fade 0.4s ease',
+            }}>
+              <p style={{ margin: '0 0 4px', color: '#C9A84C', fontSize: 17, fontWeight: 800 }}>
+                Committed. Now go do it.
+              </p>
+              <p style={{ margin: 0, color: '#777', fontSize: 14 }}>
+                Check off each pillar as you complete it.
+              </p>
+            </div>
+
+            {/* Pillar checkmark cards */}
+            <p className="section-heading" style={{ marginBottom: 12 }}>Today's Pillars</p>
+            {PILLARS.map(p => (
+              <PillarCheckCard
+                key={p.key}
+                pillar={p}
+                commitment={commit[`${p.key}_commitment`]}
+                confirmed={!!commit[`${p.key}_confirmed`]}
+                animating={animating === p.key}
+                onConfirm={() => handleConfirm(p.key)}
+              />
+            ))}
+
+            {/* Evening CTA — visible after 6 pm */}
+            {isEvening && (
+              <button
+                onClick={() => navigate('evening')}
+                style={{
+                  width: '100%',
+                  background: 'rgba(201,168,76,0.1)',
+                  border: '1px solid rgba(201,168,76,0.4)',
+                  borderRadius: 14, padding: '16px 20px',
+                  cursor: 'pointer', textAlign: 'left',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  marginTop: 20, marginBottom: 4,
+                  animation: 'db-pulse 2.4s ease infinite',
+                }}
+              >
+                <div>
+                  <p style={{ margin: '0 0 4px', color: '#C9A84C', fontSize: 15, fontWeight: 700 }}>
+                    Evening reflection is ready.
+                  </p>
+                  <p style={{ margin: 0, color: '#888', fontSize: 13 }}>
+                    Close the loop →
+                  </p>
+                </div>
+                <span style={{ color: '#C9A84C', fontSize: 22 }}>›</span>
+              </button>
+            )}
+
+            {/* Streak */}
+            <div style={{ marginTop: 20 }}>
+              <StreakCard streak={streak} />
+            </div>
+          </>
+        )}
+
+        {/* ── DONE PHASE ────────────────────────────────────────────── */}
+        {phase === 'done' && (
+          <>
+            {/* Status card */}
+            <div style={{
+              background: 'rgba(77,217,192,0.06)',
+              border: '1px solid rgba(77,217,192,0.25)',
+              borderRadius: 14, padding: '18px 16px',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              marginBottom: 20,
+              animation: 'db-fade 0.4s ease',
+            }}>
               <div>
-                <p className="cta-complete-title">Today you showed up.</p>
-                <p className="cta-complete-sub">All pillars aligned.</p>
+                <p style={{ margin: '0 0 4px', color: '#4DD9C0', fontSize: 17, fontWeight: 800 }}>
+                  Today you showed up. ✅
+                </p>
+                <p style={{ margin: 0, color: '#666', fontSize: 14 }}>
+                  {confirmedCount === 4
+                    ? 'All pillars aligned.'
+                    : `${confirmedCount}/4 pillars confirmed.`}
+                </p>
               </div>
-              <button className="btn-outline" onClick={() => navigate('checkin')}>
+              <button
+                className="btn-outline"
+                style={{ flexShrink: 0, fontSize: 13, padding: '8px 14px' }}
+                onClick={() => setShowReview(true)}
+              >
                 Review
               </button>
             </div>
-          ) : (
-            <button className="btn-primary btn-cta" onClick={() => navigate('checkin')}>
-              Enter Your Morning →
-            </button>
-          )}
-        </div>
 
-        {/* Evening Reflection card — visible after 6pm */}
-        {showEveningCard && (
-          <button
-            className="evening-card"
-            onClick={() => navigate('evening')}
-          >
-            <div className="evening-card-left">
-              <span className="evening-card-icon">◈</span>
-              <div>
-                <p className="evening-card-title">Evening Reflection</p>
-                <p className="evening-card-sub">Close the day strong.</p>
-              </div>
-            </div>
-            <span className="evening-card-arrow">›</span>
-          </button>
-        )}
-
-        {/* Four Pillar context cards */}
-        <div className="pillar-previews">
-          <p className="section-heading">Today's Pillars</p>
-          <div className="pillar-preview-grid">
-            {PILLAR_PREVIEWS.map(p => (
-              <div
-                key={p.label}
-                className="pillar-preview-card"
-                onClick={() => navigate('checkin')}
-                role="button"
-                tabIndex={0}
-                onKeyDown={e => e.key === 'Enter' && navigate('checkin')}
-              >
-                <span className="pillar-preview-icon">{p.icon}</span>
-                <div className="pillar-preview-text">
-                  <p className="pillar-preview-label">{p.label}</p>
-                  <p className="pillar-preview-desc">{p.desc}</p>
-                </div>
-              </div>
+            {/* Pillar done cards (read-only) */}
+            <p className="section-heading" style={{ marginBottom: 12 }}>Today's Pillars</p>
+            {PILLARS.map(p => (
+              <PillarCheckCard
+                key={p.key}
+                pillar={p}
+                commitment={commit[`${p.key}_commitment`]}
+                confirmed={!!commit[`${p.key}_confirmed`]}
+                animating={false}
+                onConfirm={() => {}}
+              />
             ))}
-          </div>
-        </div>
 
-        {/* 30-Day Calendar */}
-        {!loading && <CalendarGrid calendarDays={calendarDays} />}
+            {/* Streak */}
+            <div style={{ marginTop: 20 }}>
+              <StreakCard streak={streak} />
+            </div>
+          </>
+        )}
 
       </main>
     </div>
