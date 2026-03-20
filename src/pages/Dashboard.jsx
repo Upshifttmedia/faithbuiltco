@@ -280,7 +280,7 @@ function PillarCheckCard({ pillar, commitment, confirmed, animating, onConfirm, 
           }}
         >
           {commitment
-            ? <>{commitment} <span style={{ color: '#C9A84C', fontSize: 11 }}>✎</span></>
+            ? <>{commitment}<span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, marginLeft: 6, verticalAlign: 'middle' }}><span style={{ color: '#C9A84C', fontSize: 18, lineHeight: 1 }}>✎</span><span style={{ color: '#666', fontSize: 10, fontWeight: 600, letterSpacing: 0.5 }}>Edit</span></span></>
             : <span style={{ color: '#444', fontStyle: 'italic' }}>Tap to add commitment…</span>
           }
         </p>
