@@ -1,12 +1,14 @@
 import { useAuth } from '../hooks/useAuth'
 import { useStreak } from '../hooks/useStreak'
 import { useHistory } from '../hooks/useHistory'
+import { useDailyCommit } from '../hooks/useDailyCommit'
 import NotificationToggle from '../components/NotificationToggle'
 
 export default function Profile({ navigate }) {
   const { user, signOut } = useAuth()
   const { streak } = useStreak(user?.id)
   const { totalCompleted, loading } = useHistory(user?.id)
+  const { commit } = useDailyCommit(user?.id)
 
   // Prefer stored display_name over email prefix
   const displayName =
@@ -57,19 +59,27 @@ export default function Profile({ navigate }) {
           <p className="profile-section-title">Your 4 Pillars</p>
           <div className="profile-pillars">
             {[
-              { icon: '✦', name: 'Faith',       tasks: 'Pray first. Open the Word.' },
-              { icon: '⚡', name: 'Body',        tasks: 'Move. Fuel. Repeat.' },
-              { icon: '◈', name: 'Mind',         tasks: 'Feed your mind. Guard your attention.' },
-              { icon: '◆', name: 'Stewardship',  tasks: 'Own your resources. Serve without agenda.' },
-            ].map(p => (
-              <div key={p.name} className="profile-pillar-row">
-                <span className="profile-pillar-icon">{p.icon}</span>
-                <div>
-                  <p className="profile-pillar-name">{p.name}</p>
-                  <p className="profile-pillar-tasks">{p.tasks}</p>
+              { icon: '✦', key: 'faith',       name: 'Faith',       fallback: 'Scripture and prayer' },
+              { icon: '⚡', key: 'body',        name: 'Body',        fallback: 'Move your body today' },
+              { icon: '◈', key: 'mind',         name: 'Mind',        fallback: 'Read and reflect' },
+              { icon: '◆', key: 'stewardship',  name: 'Stewardship', fallback: 'Own your responsibilities' },
+            ].map(p => {
+              const todayText = commit?.[`${p.key}_commitment`]
+              return (
+                <div key={p.name} className="profile-pillar-row">
+                  <span className="profile-pillar-icon">{p.icon}</span>
+                  <div>
+                    <p className="profile-pillar-name">{p.name}</p>
+                    <p
+                      className="profile-pillar-tasks"
+                      style={todayText ? { color: '#fff' } : undefined}
+                    >
+                      {todayText || p.fallback}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
 
