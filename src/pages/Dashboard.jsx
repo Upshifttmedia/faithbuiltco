@@ -146,8 +146,108 @@ function AllFourOverlay({ onDone }) {
   )
 }
 
+// ── Edit commitment modal (slides up from bottom) ────────────────────
+function EditCommitmentModal({ pillar, initialText, onSave, onCancel }) {
+  const [text, setText] = useState(initialText ?? '')
+  const [saving, setSaving] = useState(false)
+
+  async function handleSave() {
+    setSaving(true)
+    await onSave(text.trim())
+    setSaving(false)
+  }
+
+  return (
+    <div
+      style={{
+        position: 'fixed', inset: 0, zIndex: 95,
+        background: 'rgba(0,0,0,0.75)',
+        display: 'flex', alignItems: 'flex-end',
+      }}
+      onClick={e => { if (e.target === e.currentTarget) onCancel() }}
+    >
+      <style>{`
+        @keyframes sheet-up { from { transform:translateY(100%) } to { transform:translateY(0) } }
+      `}</style>
+      <div style={{
+        width: '100%',
+        background: '#1a1a1a',
+        borderRadius: '18px 18px 0 0',
+        padding: '24px 20px 40px',
+        animation: 'sheet-up 0.28s cubic-bezier(0.32,0.72,0,1)',
+      }}>
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+          <span style={{ fontSize: 20 }}>{pillar.icon}</span>
+          <p style={{
+            margin: 0, fontSize: 14, fontWeight: 700,
+            color: '#C9A84C', textTransform: 'uppercase', letterSpacing: 1,
+          }}>
+            {pillar.label}
+          </p>
+        </div>
+
+        {/* Textarea */}
+        <textarea
+          value={text}
+          onChange={e => setText(e.target.value)}
+          maxLength={200}
+          rows={4}
+          autoFocus
+          placeholder={`What will you commit to for ${pillar.label} today?`}
+          style={{
+            width: '100%', boxSizing: 'border-box',
+            background: '#111', color: '#e0e0e0',
+            border: '1.5px solid #333',
+            borderRadius: 10, padding: '12px 14px',
+            fontSize: 15, lineHeight: 1.55,
+            resize: 'none', outline: 'none',
+            transition: 'border-color 0.2s ease',
+            fontFamily: 'inherit',
+          }}
+          onFocus={e => { e.target.style.borderColor = '#C9A84C' }}
+          onBlur={e => { e.target.style.borderColor = '#333' }}
+        />
+        <p style={{ margin: '6px 0 0', fontSize: 12, color: '#444', textAlign: 'right' }}>
+          {text.length}/200
+        </p>
+
+        {/* Buttons */}
+        <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+          <button
+            onClick={onCancel}
+            style={{
+              flex: 1, padding: '13px 0',
+              background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: 10, color: '#888',
+              fontSize: 15, fontWeight: 600, cursor: 'pointer',
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving || !text.trim()}
+            style={{
+              flex: 1, padding: '13px 0',
+              background: saving || !text.trim() ? 'rgba(201,168,76,0.35)' : '#C9A84C',
+              border: 'none',
+              borderRadius: 10, color: '#000',
+              fontSize: 15, fontWeight: 700, cursor: saving ? 'wait' : 'pointer',
+              transition: 'background 0.2s ease',
+            }}
+          >
+            {saving ? 'Saving…' : 'Update'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Pillar checkmark card (day phase) ────────────────────────────────
-function PillarCheckCard({ pillar, commitment, confirmed, animating, onConfirm }) {
+function PillarCheckCard({ pillar, commitment, confirmed, animating, onConfirm, onEditTap }) {
   return (
     <div style={{
       display: 'flex', alignItems: 'flex-start', gap: 14,
@@ -171,8 +271,18 @@ function PillarCheckCard({ pillar, commitment, confirmed, animating, onConfirm }
             {pillar.label}
           </p>
         </div>
-        <p style={{ margin: 0, color: '#bbb', fontSize: 14, lineHeight: 1.55 }}>
-          {commitment || <span style={{ color: '#444', fontStyle: 'italic' }}>No commitment recorded</span>}
+        {/* Tapping the text opens the edit sheet */}
+        <p
+          onClick={onEditTap}
+          style={{
+            margin: 0, color: '#bbb', fontSize: 14, lineHeight: 1.55,
+            cursor: onEditTap ? 'pointer' : 'default',
+          }}
+        >
+          {commitment
+            ? <>{commitment} <span style={{ color: '#C9A84C', fontSize: 11 }}>✎</span></>
+            : <span style={{ color: '#444', fontStyle: 'italic' }}>Tap to add commitment…</span>
+          }
         </p>
       </div>
 
@@ -231,11 +341,12 @@ function PillarPreviewCard({ pillar, text }) {
 export default function Dashboard({ navigate, userId }) {
   const { user, profile }                   = useAuth()
   const { streak }                          = useStreak(userId)
-  const { commit, yesterdayCommit, loading, confirmPillar, unconfirmPillar } = useDailyCommit(userId)
+  const { commit, yesterdayCommit, loading, confirmPillar, unconfirmPillar, updateCommitment } = useDailyCommit(userId)
 
-  const [animating, setAnimating]   = useState(null)   // pillar key being animated
+  const [animating, setAnimating]     = useState(null)   // pillar key being animated
   const [showAllFour, setShowAllFour] = useState(false)
   const [showReview, setShowReview]   = useState(false)
+  const [editingPillar, setEditing]   = useState(null)   // pillar object being edited
 
   const displayName = profile?.display_name
     || user?.user_metadata?.display_name
@@ -289,6 +400,19 @@ export default function Dashboard({ navigate, userId }) {
       {/* Review modal */}
       {showReview && commit && (
         <ReviewModal commit={commit} onClose={() => setShowReview(false)} />
+      )}
+
+      {/* Edit commitment modal */}
+      {editingPillar && commit && (
+        <EditCommitmentModal
+          pillar={editingPillar}
+          initialText={commit[`${editingPillar.key}_commitment`] ?? ''}
+          onSave={async (text) => {
+            await updateCommitment(editingPillar.key, text)
+            setEditing(null)
+          }}
+          onCancel={() => setEditing(null)}
+        />
       )}
 
       <header className="top-bar">
@@ -380,6 +504,7 @@ export default function Dashboard({ navigate, userId }) {
                 confirmed={!!commit[`${p.key}_confirmed`]}
                 animating={animating === p.key}
                 onConfirm={() => handleConfirm(p.key)}
+                onEditTap={() => setEditing(p)}
               />
             ))}
 

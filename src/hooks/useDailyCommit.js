@@ -100,6 +100,24 @@ export function useDailyCommit(userId) {
     return data
   }
 
+  // ── Edit a single pillar's commitment text ───────────────────────────
+  async function updateCommitment(pillarKey, text) {
+    if (!userId || !commit) return null
+
+    const today = getLocalDate()
+    const field = `${pillarKey}_commitment`
+    const { data, error } = await supabase
+      .from('daily_commits')
+      .update({ [field]: text })
+      .eq('user_id', userId)
+      .eq('commit_date', today)
+      .select()
+      .single()
+
+    if (!error && data) setCommit(data)
+    return data
+  }
+
   // ── Evening save ─────────────────────────────────────────────────────
   // eveningConfirms: { faith: bool, body: bool, mind: bool, stewardship: bool }
   // Only flips a column to true — never overwrites an existing true.
@@ -131,6 +149,7 @@ export function useDailyCommit(userId) {
     saveMorning,
     confirmPillar,
     unconfirmPillar,
+    updateCommitment,
     saveEvening,
     refetch: fetchCommit,
   }
