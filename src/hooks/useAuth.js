@@ -17,7 +17,8 @@ export function useAuth() {
 
   // ── Fetch profile (onboarding_done, display_name, etc.) ────────────
   async function fetchProfile(uid) {
-    // Must call setProfileLoading(false) on every exit path — it starts true.
+    // Must call setProfileLoading(false) + setProfileFetched(true) on EVERY
+    // exit path — they start as true/false respectively and gate App.jsx routing.
     if (!uid) { setProfile(null); setProfileLoading(false); setProfileFetched(true); return }
     setProfileLoading(true)
     const { data, error } = await supabase
@@ -29,11 +30,24 @@ export function useAuth() {
       // Log but don't overwrite profile state on a failed fetch — a stale
       // profile is safer than a null one that wipes onboarding_done.
       console.error('[FaithBuilt] fetchProfile error:', JSON.stringify(error))
+      // Cross-device fix: even on error, if localStorage already has the flag
+      // from a previous successful fetch on this device, keep it intact.
+      // If localStorage is also empty (truly new device + network error) the
+      // user will see onboarding — that is the safest fallback.
     } else {
+      // ORDER MATTERS: localStorage.setItem is synchronous and must run
+      // BEFORE setProfileFetched(true) so that when React flushes the batch
+      // and App.jsx re-renders, localStorage already reflects onboarding_done.
       setProfile(data ?? null)
-      // Mirror to localStorage so the onboarding check survives a failed fetch.
-      if (data?.onboarding_done === true) localStorage.setItem('fb_onboarding_done', '1')
+      if (data?.onboarding_done === true) {
+        localStorage.setItem('fb_onboarding_done', '1')
+        console.log('[FaithBuilt] fetchProfile: onboarding_done=true, localStorage set')
+      } else {
+        console.log('[FaithBuilt] fetchProfile: onboarding_done=', data?.onboarding_done, '(ls unchanged)')
+      }
     }
+    // setProfileLoading + setProfileFetched batched last — App.jsx only
+    // unblocks after both profile state AND localStorage are already updated.
     setProfileLoading(false)
     setProfileFetched(true)
   }
