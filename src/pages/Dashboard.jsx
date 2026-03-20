@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { useStreak } from '../hooks/useStreak'
 import { useDailyCommit } from '../hooks/useDailyCommit'
+import ArmorShield from '../components/Dashboard/ArmorShield'
 
 const EVENING_HOUR = 18  // 6 pm local
 
@@ -231,7 +232,7 @@ function PillarPreviewCard({ pillar, text }) {
 export default function Dashboard({ navigate, userId }) {
   const { user, profile }                   = useAuth()
   const { streak }                          = useStreak(userId)
-  const { commit, yesterdayCommit, loading, confirmPillar } = useDailyCommit(userId)
+  const { commit, yesterdayCommit, loading, confirmPillar, unconfirmPillar } = useDailyCommit(userId)
 
   const [animating, setAnimating]   = useState(null)   // pillar key being animated
   const [showAllFour, setShowAllFour] = useState(false)
@@ -256,16 +257,23 @@ export default function Dashboard({ navigate, userId }) {
     : 0
 
   async function handleConfirm(pillarKey) {
-    if (!commit || commit[`${pillarKey}_confirmed`]) return
+    if (!commit) return
     setAnimating(pillarKey)
-    const updated = await confirmPillar(pillarKey)
-    setTimeout(() => setAnimating(null), 400)
 
-    // Check if all 4 are now confirmed
-    if (updated) {
-      const nowCount = PILLARS.filter(p => updated[`${p.key}_confirmed`]).length
-      if (nowCount === 4) setShowAllFour(true)
+    if (commit[`${pillarKey}_confirmed`]) {
+      // Toggle OFF — unconfirm
+      await unconfirmPillar(pillarKey)
+    } else {
+      // Toggle ON — confirm
+      const updated = await confirmPillar(pillarKey)
+      // Show all-four celebration when 4th pillar is confirmed
+      if (updated) {
+        const nowCount = PILLARS.filter(p => updated[`${p.key}_confirmed`]).length
+        if (nowCount === 4) setShowAllFour(true)
+      }
     }
+
+    setTimeout(() => setAnimating(null), 400)
   }
 
   if (loading) {
@@ -355,6 +363,14 @@ export default function Dashboard({ navigate, userId }) {
               </p>
             </div>
 
+            {/* Armor Shield */}
+            <ArmorShield
+              faithConfirmed={!!commit.faith_confirmed}
+              bodyConfirmed={!!commit.body_confirmed}
+              mindConfirmed={!!commit.mind_confirmed}
+              stewardshipConfirmed={!!commit.stewardship_confirmed}
+            />
+
             {/* Pillar checkmark cards */}
             <p className="section-heading" style={{ marginBottom: 12 }}>Today's Pillars</p>
             {PILLARS.map(p => (
@@ -432,6 +448,14 @@ export default function Dashboard({ navigate, userId }) {
                 Review
               </button>
             </div>
+
+            {/* Armor Shield (read-only) */}
+            <ArmorShield
+              faithConfirmed={!!commit.faith_confirmed}
+              bodyConfirmed={!!commit.body_confirmed}
+              mindConfirmed={!!commit.mind_confirmed}
+              stewardshipConfirmed={!!commit.stewardship_confirmed}
+            />
 
             {/* Pillar done cards (read-only) */}
             <p className="section-heading" style={{ marginBottom: 12 }}>Today's Pillars</p>

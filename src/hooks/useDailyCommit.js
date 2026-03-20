@@ -83,6 +83,22 @@ export function useDailyCommit(userId) {
     return data
   }
 
+  // ── Toggle a pillar back to unconfirmed ──────────────────────────────
+  async function unconfirmPillar(pillarKey) {
+    if (!commit) return null
+
+    const field = `${pillarKey}_confirmed`
+    const { data, error } = await supabase
+      .from('daily_commits')
+      .update({ [field]: false })
+      .eq('id', commit.id)
+      .select()
+      .single()
+
+    if (!error && data) setCommit(data)
+    return data
+  }
+
   // ── Evening save ─────────────────────────────────────────────────────
   // eveningConfirms: { faith: bool, body: bool, mind: bool, stewardship: bool }
   // Only flips a column to true — never overwrites an existing true.
@@ -113,6 +129,7 @@ export function useDailyCommit(userId) {
     loading,
     saveMorning,
     confirmPillar,
+    unconfirmPillar,
     saveEvening,
     refetch: fetchCommit,
   }
