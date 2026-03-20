@@ -4,6 +4,8 @@
  * Filled quadrant: gold gradient, bright gold icon #FFD700.
  * When all 4 are confirmed the shield border pulses gold.
  */
+import CrossIcon from '../CrossIcon'
+
 export default function ArmorShield({
   faithConfirmed       = false,
   bodyConfirmed        = false,
@@ -123,6 +125,11 @@ export default function ArmorShield({
       }}>
         {[faithConfirmed, bodyConfirmed, mindConfirmed, stewardshipConfirmed].filter(Boolean).length} / 4 confirmed
       </p>
+
+      {/* Cross icon — gold when all four, muted otherwise */}
+      <div style={{ marginTop: 10, opacity: allFour ? 1 : 0.28, transition: 'opacity 0.4s ease' }}>
+        <CrossIcon size={20} color="#C9A84C" />
+      </div>
     </div>
   )
 }

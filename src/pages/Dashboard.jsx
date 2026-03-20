@@ -3,6 +3,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useStreak } from '../hooks/useStreak'
 import { useDailyCommit } from '../hooks/useDailyCommit'
 import ArmorShield from '../components/Dashboard/ArmorShield'
+import CrossIcon from '../components/CrossIcon'
 
 const EVENING_HOUR = 18  // 6 pm local
 
@@ -34,25 +35,45 @@ const ANIMATIONS = `
   @keyframes db-glow  { 0%,100% { box-shadow:0 0 0 0 rgba(201,168,76,0.3) } 50% { box-shadow:0 0 16px 4px rgba(201,168,76,0.5) } }
 `
 
-// ── Streak card ──────────────────────────────────────────────────────
-function StreakCard({ streak }) {
+// ── Shield + streak stats block ───────────────────────────────────────
+function ShieldWithStats({ commit, streak }) {
   return (
-    <div className="streak-callout">
-      <div className="streak-callout-left">
-        <span className="streak-callout-flame">🔥</span>
-        <div>
-          <div className="streak-callout-number">{streak.current_streak}</div>
-          <div className="streak-callout-label">
-            day streak
-            {streak.grace_active && (
-              <span className="grace-shield" title="Grace day active — streak protected"> 🛡</span>
-            )}
-          </div>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '4px 0 8px' }}>
+      <ArmorShield
+        faithConfirmed={!!commit?.faith_confirmed}
+        bodyConfirmed={!!commit?.body_confirmed}
+        mindConfirmed={!!commit?.mind_confirmed}
+        stewardshipConfirmed={!!commit?.stewardship_confirmed}
+      />
+
+      {/* Stats row: current streak | divider | best */}
+      <div style={{
+        display: 'flex', alignItems: 'center',
+        width: 200, marginTop: 16,
+      }}>
+        {/* Left — current streak */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+          <span style={{ fontSize: 20, lineHeight: 1 }}>🔥</span>
+          <span style={{ fontSize: 30, fontWeight: 900, color: '#C9A84C', lineHeight: 1 }}>
+            {streak.current_streak}
+          </span>
+          <span style={{ fontSize: 11, color: '#666', letterSpacing: 0.5, textAlign: 'center' }}>
+            day streak{streak.grace_active && <span title="Grace day active — streak protected"> 🛡</span>}
+          </span>
         </div>
-      </div>
-      <div className="streak-callout-right">
-        <div className="streak-best-num">{streak.longest_streak}</div>
-        <div className="streak-best-label">best</div>
+
+        {/* Vertical divider */}
+        <div style={{ width: 1, height: 52, background: 'rgba(255,255,255,0.1)', flexShrink: 0 }} />
+
+        {/* Right — best streak */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+          <span style={{ fontSize: 30, fontWeight: 900, color: '#fff', lineHeight: 1 }}>
+            {streak.longest_streak}
+          </span>
+          <span style={{ fontSize: 11, color: '#666', letterSpacing: 1, textTransform: 'uppercase' }}>
+            Best
+          </span>
+        </div>
       </div>
     </div>
   )
@@ -417,7 +438,7 @@ export default function Dashboard({ navigate, userId }) {
 
       <header className="top-bar">
         <div className="brand">
-          <span className="brand-mark">✦</span>
+          <CrossIcon size={18} color="white" />
           <span className="brand-name">FaithBuilt</span>
         </div>
       </header>
@@ -450,8 +471,8 @@ export default function Dashboard({ navigate, userId }) {
               Begin Your Morning
             </button>
 
-            {/* Streak */}
-            <StreakCard streak={streak} />
+            {/* Shield + streak stats */}
+            <ShieldWithStats commit={null} streak={streak} />
 
             {/* Yesterday's pillars (greyed out) */}
             <div style={{ marginTop: 24 }}>
@@ -486,13 +507,8 @@ export default function Dashboard({ navigate, userId }) {
               </p>
             </div>
 
-            {/* Armor Shield */}
-            <ArmorShield
-              faithConfirmed={!!commit.faith_confirmed}
-              bodyConfirmed={!!commit.body_confirmed}
-              mindConfirmed={!!commit.mind_confirmed}
-              stewardshipConfirmed={!!commit.stewardship_confirmed}
-            />
+            {/* Shield + streak stats */}
+            <ShieldWithStats commit={commit} streak={streak} />
 
             {/* Pillar checkmark cards */}
             <p className="section-heading" style={{ marginBottom: 12 }}>Today's Pillars</p>
@@ -534,11 +550,6 @@ export default function Dashboard({ navigate, userId }) {
                 <span style={{ color: '#C9A84C', fontSize: 22 }}>›</span>
               </button>
             )}
-
-            {/* Streak */}
-            <div style={{ marginTop: 20 }}>
-              <StreakCard streak={streak} />
-            </div>
           </>
         )}
 
@@ -573,13 +584,8 @@ export default function Dashboard({ navigate, userId }) {
               </button>
             </div>
 
-            {/* Armor Shield (read-only) */}
-            <ArmorShield
-              faithConfirmed={!!commit.faith_confirmed}
-              bodyConfirmed={!!commit.body_confirmed}
-              mindConfirmed={!!commit.mind_confirmed}
-              stewardshipConfirmed={!!commit.stewardship_confirmed}
-            />
+            {/* Shield + streak stats (read-only) */}
+            <ShieldWithStats commit={commit} streak={streak} />
 
             {/* Pillar done cards (read-only) */}
             <p className="section-heading" style={{ marginBottom: 12 }}>Today's Pillars</p>
@@ -593,11 +599,6 @@ export default function Dashboard({ navigate, userId }) {
                 onConfirm={() => {}}
               />
             ))}
-
-            {/* Streak */}
-            <div style={{ marginTop: 20 }}>
-              <StreakCard streak={streak} />
-            </div>
           </>
         )}
 
