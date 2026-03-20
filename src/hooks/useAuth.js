@@ -69,6 +69,8 @@ export function useAuth() {
     const type      = params.get('type')
 
     if (tokenHash && type) {
+      console.log('[FaithBuilt] token_hash detected:', type, tokenHash ? 'present' : 'missing')
+
       // A new signup confirmation — clear any stale onboarding flag so the
       // new user sees onboarding, not a cached state from a previous user.
       if (type === 'signup') {
@@ -76,6 +78,7 @@ export function useAuth() {
       }
 
       supabase.auth.verifyOtp({ token_hash: tokenHash, type }).then(({ data, error }) => {
+        console.log('[FaithBuilt] verifyOtp result:', data, error)
         if (!error && data?.session) {
           const u = data.session.user
           setUser(u)
