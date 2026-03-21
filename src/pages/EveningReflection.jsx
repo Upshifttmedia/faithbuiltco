@@ -405,7 +405,7 @@ export default function EveningReflection({ navigate, userId }) {
     // Stable outer shell — never remounts on step change
     <div style={sScreen}>
       <style>{CSS}</style>
-      {toast && <Toast {...toast} onDismiss={() => setToast(null)} />
+      {toast && <Toast {...toast} onDismiss={() => setToast(null)} />}
 
       {/* ── Header: back button + progress dots ── */}
       <div style={{
