@@ -176,7 +176,7 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
   // ── Commitment form ──────────────────────────────────────────────────
   return (
     <div className="app-shell">
-      {toast && <Toast {...toast} onDismiss={() => setToast(null)} />
+      {toast && <Toast {...toast} onDismiss={() => setToast(null)} />}
       <header className="top-bar">
         <button className="back-btn" onClick={() => navigate('dashboard')} aria-label="Back">
           ← Back
