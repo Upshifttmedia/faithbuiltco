@@ -69,7 +69,7 @@ function ShieldWithStats({ commit, streak }) {
             />
           </div>
           <span style={{ fontSize: 11, color: '#666', letterSpacing: 0.5, marginTop: 5 }}>
-            day streak{streak.grace_active && <span title="Grace day active — streak protected"> 🛡</span>}
+            day streak
           </span>
         </div>
 
@@ -557,8 +557,8 @@ export default function Dashboard({ navigate, userId }) {
             </div>
 
             {/* Name label above shield */}
-            <p style={{ margin: '0 0 2px', color: '#444', fontSize: 12, textAlign: 'center', letterSpacing: 0.5 }}>
-              {displayName}
+            <p style={{ margin: '0 0 8px', color: '#fff', fontSize: 22, fontWeight: 600, textAlign: 'center', letterSpacing: 1 }}>
+              <span style={{ color: '#C9A84C', marginRight: 8 }}>✦</span>{displayName}
             </p>
 
             {/* Shield + streak stats */}
