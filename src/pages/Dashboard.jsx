@@ -5,6 +5,7 @@ import { useDailyCommit } from '../hooks/useDailyCommit'
 import { getLocalDate }   from '../lib/dateUtils'
 import ArmorShield        from '../components/Dashboard/ArmorShield'
 import { supabase }       from '../lib/supabase'
+import Toast              from '../components/Toast'
 
 const PILLARS = [
   { key: 'faith',       icon: '✦', label: 'Faith',       desc: 'Scripture and prayer' },
@@ -372,13 +373,21 @@ function PillarPreviewCard({ pillar, text }) {
 export default function Dashboard({ navigate, userId }) {
   const { user, profile }                   = useAuth()
   const { streak }                          = useStreak(userId)
-  const { commit, yesterdayCommit, loading, confirmPillar, unconfirmPillar, updateCommitment, refetch } = useDailyCommit(userId)
+  const { commit, yesterdayCommit, loading, fetchError, confirmPillar, unconfirmPillar, updateCommitment, refetch } = useDailyCommit(userId)
+  const [toast, setToast] = useState(null)
 
   const [animating, setAnimating]     = useState(null)   // pillar key being animated
   const [showAllFour, setShowAllFour] = useState(false)
   const [showReview, setShowReview]   = useState(false)
   const [editingPillar, setEditing]   = useState(null)   // pillar object being edited
   const [eveningTime, setEveningTime] = useState(null)   // "HH:MM" from push_subscriptions
+
+  // Show toast when daily_commits fetch fails
+  useEffect(() => {
+    if (fetchError) {
+      setToast({ message: 'Having trouble loading your data. Pull to refresh.', type: 'error' })
+    }
+  }, [fetchError])
 
   const displayName = profile?.display_name
     || user?.user_metadata?.display_name
@@ -482,6 +491,7 @@ export default function Dashboard({ navigate, userId }) {
   return (
     <div className="app-shell">
       <style>{ANIMATIONS}</style>
+      {toast && <Toast {...toast} onDismiss={() => setToast(null)} />}
 
       {/* All-4 celebration overlay */}
       {showAllFour && <AllFourOverlay onDone={() => setShowAllFour(false)} />}

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useDailyCommit } from '../hooks/useDailyCommit'
+import Toast from '../components/Toast'
 
 // ── Rotating hint texts (7 per pillar, indexed by day of week 0-6) ──
 const HINTS = {
@@ -63,6 +64,7 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
   const [phase, setPhase]        = useState('form')  // 'form' | 'committed'
   const [justCommitted, setJust] = useState(false)   // true only when commit happened this session
   const [saving, setSaving]      = useState(false)
+  const [toast, setToast]        = useState(null)
 
   // Pre-fill & jump to committed view if already done today
   useEffect(() => {
@@ -85,9 +87,13 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
 
   async function handleCommit() {
     setSaving(true)
-    await saveMorning(texts)
-    onAllComplete?.()
+    const { error } = await saveMorning(texts)
     setSaving(false)
+    if (error) {
+      setToast({ message: "Couldn't save your commitment. Check your connection and try again.", type: 'error' })
+      return
+    }
+    onAllComplete?.()
     setJust(true)
     setPhase('committed')
   }
@@ -170,6 +176,7 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
   // ── Commitment form ──────────────────────────────────────────────────
   return (
     <div className="app-shell">
+      {toast && <Toast {...toast} onDismiss={() => setToast(null)} />
       <header className="top-bar">
         <button className="back-btn" onClick={() => navigate('dashboard')} aria-label="Back">
           ← Back

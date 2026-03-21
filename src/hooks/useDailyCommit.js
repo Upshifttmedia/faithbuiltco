@@ -17,23 +17,20 @@ export function useDailyCommit(userId) {
   const [commit, setCommit]               = useState(null)   // today
   const [yesterdayCommit, setYesterday]   = useState(null)   // yesterday
   const [loading, setLoading]             = useState(true)
+  const [fetchError, setFetchError]       = useState(null)   // network/DB error on load
 
   const fetchCommit = useCallback(async () => {
     if (!userId) { setLoading(false); return }
 
-    // Always reset to loading state before hitting Supabase.
-    // This ensures every mount and every manual refetch() shows a clean
-    // loading state and never serves stale in-memory data.
-    // There is intentionally NO localStorage/sessionStorage caching here —
-    // daily_commits data must always come fresh from the database.
     setCommit(null)
     setYesterday(null)
+    setFetchError(null)
     setLoading(true)
 
     const today     = getLocalDate()
     const yesterday = getLocalDateOffset(1)
 
-    const [{ data: todayData }, { data: ydayData }] = await Promise.all([
+    const [{ data: todayData, error: todayErr }, { data: ydayData }] = await Promise.all([
       supabase
         .from('daily_commits').select('*')
         .eq('user_id', userId).eq('commit_date', today).maybeSingle(),
@@ -42,6 +39,7 @@ export function useDailyCommit(userId) {
         .eq('user_id', userId).eq('commit_date', yesterday).maybeSingle(),
     ])
 
+    if (todayErr) setFetchError(todayErr)
     setCommit(todayData   ?? null)
     setYesterday(ydayData ?? null)
     setLoading(false)
@@ -167,6 +165,7 @@ export function useDailyCommit(userId) {
     commit,
     yesterdayCommit,
     loading,
+    fetchError,
     saveMorning,
     confirmPillar,
     unconfirmPillar,

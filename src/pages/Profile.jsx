@@ -5,6 +5,7 @@ import { useHistory } from '../hooks/useHistory'
 import { useDailyCommit } from '../hooks/useDailyCommit'
 import { supabase } from '../lib/supabase'
 import { subscribeToPush, unsubscribeFromPush } from '../hooks/usePushNotifications'
+import Toast from '../components/Toast'
 
 const GOLD = '#C9A84C'
 
@@ -17,6 +18,7 @@ function NotificationSettings({ userId }) {
   const [morningTime, setMorningTime] = useState('07:00')
   const [eveningTime, setEveningTime] = useState('20:00')
   const [saved,       setSaved]       = useState(false)
+  const [toast,       setToast]       = useState(null)
   const saveTimer = useRef(null)
 
   // On mount: check browser push subscription AND fetch stored times
@@ -55,12 +57,20 @@ function NotificationSettings({ userId }) {
     setToggling(true)
     if (enabled) {
       const { data: { session } } = await supabase.auth.getSession()
-      await unsubscribeFromPush(session?.user?.id)
-      setEnabled(false)
+      const { error } = await unsubscribeFromPush(session?.user?.id)
+      if (error) {
+        setToast({ message: "Couldn't disable notifications. Try again.", type: 'error' })
+      } else {
+        setEnabled(false)
+      }
     } else {
       const { data: { session } } = await supabase.auth.getSession()
-      const { subscription } = await subscribeToPush(session?.user?.id)
-      if (subscription) setEnabled(true)
+      const { subscription, error } = await subscribeToPush(session?.user?.id)
+      if (error || !subscription) {
+        setToast({ message: "Couldn't enable notifications. Try again.", type: 'error' })
+      } else {
+        setEnabled(true)
+      }
     }
     setToggling(false)
   }
@@ -86,6 +96,7 @@ function NotificationSettings({ userId }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+      {toast && <Toast {...toast} onDismiss={() => setToast(null)} />}
 
       {/* ── Toggle row ── */}
       <div style={{

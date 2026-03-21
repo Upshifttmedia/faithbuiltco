@@ -16,6 +16,7 @@ import { useState, useEffect } from 'react'
 import { useDailyCommit } from '../hooks/useDailyCommit'
 import { useStreak }      from '../hooks/useStreak'
 import { useAuth }        from '../hooks/useAuth'
+import Toast              from '../components/Toast'
 
 const PILLARS = [
   { key: 'faith',       icon: '✦', label: 'Faith' },
@@ -188,6 +189,7 @@ export default function EveningReflection({ navigate, userId }) {
   const [carryText, setCarry]       = useState('')
   const [saving, setSaving]         = useState(false)
   const [showGrace, setShowGrace]   = useState(false) // brief grace message after "I fell short"
+  const [toast, setToast]           = useState(null)
 
   // ── Post-save state ─────────────────────────────────────────────────
   const [phase, setPhase]            = useState(null)
@@ -237,6 +239,7 @@ export default function EveningReflection({ navigate, userId }) {
       }
     } catch (err) {
       console.error('[FaithBuilt] handleLockIn error:', err)
+      setToast({ message: "Couldn't save your reflection. Try again.", type: 'error' })
     } finally {
       setSaving(false)
     }
@@ -402,6 +405,7 @@ export default function EveningReflection({ navigate, userId }) {
     // Stable outer shell — never remounts on step change
     <div style={sScreen}>
       <style>{CSS}</style>
+      {toast && <Toast {...toast} onDismiss={() => setToast(null)} />
 
       {/* ── Header: back button + progress dots ── */}
       <div style={{
