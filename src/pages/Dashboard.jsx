@@ -594,16 +594,16 @@ export default function Dashboard({ navigate, userId }) {
           <>
             {/* Status card */}
             <div style={{
-              background: 'rgba(77,217,192,0.06)',
-              border: '1px solid rgba(77,217,192,0.25)',
+              background: 'rgba(201,168,76,0.06)',
+              border: '1px solid rgba(201,168,76,0.3)',
               borderRadius: 14, padding: '18px 16px',
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               marginBottom: 20,
               animation: 'db-fade 0.4s ease',
             }}>
               <div>
-                <p style={{ margin: '0 0 4px', color: '#4DD9C0', fontSize: 17, fontWeight: 800 }}>
-                  Today you showed up. ✅
+                <p style={{ margin: '0 0 4px', color: '#C9A84C', fontSize: 17, fontWeight: 800 }}>
+                  Today you showed up. ✓
                 </p>
                 <p style={{ margin: 0, color: '#666', fontSize: 14 }}>
                   {confirmedCount === 4

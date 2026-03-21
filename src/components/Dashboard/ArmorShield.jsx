@@ -57,9 +57,9 @@ export default function ArmorShield({
             <path d={SHIELD} />
           </clipPath>
 
-          {/* Gold fill gradient */}
-          <linearGradient id="gold-grad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%"   stopColor="#C9A84C" />
+          {/* Gold fill gradient — userSpaceOnUse so it renders correctly inside clipPath */}
+          <linearGradient id="gold-grad" x1="0" y1="8" x2="0" y2="228" gradientUnits="userSpaceOnUse">
+            <stop offset="0%"   stopColor="#D4AF5A" />
             <stop offset="100%" stopColor="#8B6914" />
           </linearGradient>
         </defs>
@@ -67,14 +67,15 @@ export default function ArmorShield({
         {/* Shield background */}
         <path d={SHIELD} fill="#0d0d0d" />
 
-        {/* Quadrant fills — clipped to shield shape */}
+        {/* Quadrant fills — clipped to shield shape.
+            No CSS fill transition: browsers can't interpolate between
+            url(#gold-grad) and a hex colour, causing the fill to get stuck. */}
         {quadrants.map(q => (
           <rect
             key={q.key}
             x={q.x} y={q.y} width={q.w} height={q.h}
             fill={confirmed[q.key] ? 'url(#gold-grad)' : '#1a1a1a'}
             clipPath="url(#shield-clip)"
-            style={{ transition: 'fill 0.35s ease' }}
           />
         ))}
 
