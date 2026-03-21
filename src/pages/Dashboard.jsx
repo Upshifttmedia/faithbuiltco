@@ -48,7 +48,7 @@ function ShieldWithStats({ commit, streak }) {
       {/* Stats row: current streak (left) | divider | best (right) */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        width: '100%', marginTop: 20,
+        width: '100%', marginTop: 20, padding: '0 40px', boxSizing: 'border-box',
       }}>
         {/* Left — current streak: [number][cross image] then label below */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
