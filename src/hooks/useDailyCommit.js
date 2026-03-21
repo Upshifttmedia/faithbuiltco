@@ -53,6 +53,15 @@ export function useDailyCommit(userId) {
 
   useEffect(() => { fetchCommit() }, [fetchCommit])
 
+  // Re-fetch whenever the user returns to the app (tab/window focus).
+  // This ensures DB resets and external changes are always reflected
+  // without requiring a full page reload.
+  useEffect(() => {
+    const handleFocus = () => fetchCommit()
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
+  }, [fetchCommit])
+
   // ── Morning commit ───────────────────────────────────────────────────
   async function saveMorning({ faith, body, mind, stewardship }) {
     if (!userId) return { error: new Error('No user') }
