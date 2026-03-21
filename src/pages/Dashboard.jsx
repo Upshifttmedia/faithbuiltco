@@ -419,10 +419,11 @@ export default function Dashboard({ navigate, userId }) {
     : 0
 
   // Show evening CTA only when: morning done, evening not yet done,
-  // AND current local time >= the user's chosen evening_time from push_subscriptions.
+  // AND current local time >= user's evening_time from push_subscriptions.
+  // Falls back to 20:00 if no push subscription exists for this user.
   const showEveningCTA = phase === 'day' && (() => {
-    if (!eveningTime) return false
-    const [hh, mm] = eveningTime.split(':').map(Number)
+    const time = eveningTime ?? '20:00'
+    const [hh, mm] = time.split(':').map(Number)
     const now = new Date()
     return now.getHours() * 60 + now.getMinutes() >= hh * 60 + (mm || 0)
   })()
@@ -451,42 +452,6 @@ export default function Dashboard({ navigate, userId }) {
     return <div className="loader-screen"><div className="loader-icon">✦</div></div>
   }
 
-  // ── Test Evening: navigate or reset-then-navigate ─────────────────────
-  async function handleTestEvening() {
-    if (commit?.evening_done) {
-      const confirmed = window.confirm('Reset & retest evening flow?')
-      if (!confirmed) return
-
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) return
-
-      const today = new Date().toLocaleDateString('en-CA', {
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      })
-
-      await supabase
-        .from('daily_commits')
-        .update({
-          evening_done:          false,
-          faith_confirmed:       false,
-          body_confirmed:        false,
-          mind_confirmed:        false,
-          stewardship_confirmed: false,
-        })
-        .eq('user_id', session.user.id)
-        .eq('commit_date', today)
-
-      await supabase
-        .from('streaks')
-        .update({ current_streak: Math.max(0, (streak?.current_streak || 1) - 1) })
-        .eq('user_id', session.user.id)
-
-      await refetch()
-      navigate('evening')
-    } else {
-      navigate('evening')
-    }
-  }
 
   return (
     <div className="app-shell">
@@ -689,19 +654,6 @@ export default function Dashboard({ navigate, userId }) {
 
       </main>
 
-      {/* ── Test Evening button (remove before launch) ── */}
-      <button
-        onClick={handleTestEvening}
-        style={{
-          position: 'fixed', bottom: 80, right: 16, zIndex: 999,
-          background: '#C9A84C', border: 'none',
-          borderRadius: 8, padding: '12px 16px',
-          color: '#000', fontSize: 13, fontWeight: 700,
-          cursor: 'pointer',
-        }}
-      >
-        Test Evening
-      </button>
     </div>
   )
 }
