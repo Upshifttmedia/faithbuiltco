@@ -492,11 +492,17 @@ export default function Dashboard({ navigate, userId }) {
         {phase === 'morning' && (
           <>
             {/* Greeting */}
-            <div className="dashboard-greeting" style={{ animation: 'db-fade 0.4s ease' }}>
-              <p className="greeting-sub">{getGreeting()}</p>
-              <h1 className="greeting-name">{displayName}</h1>
-              <p className="greeting-date">{todayLabel}</p>
-              <p style={{ color: '#888', fontSize: 15, margin: '8px 0 0', fontStyle: 'italic' }}>
+            <div style={{ animation: 'db-fade 0.4s ease', marginBottom: 4 }}>
+              <p style={{ margin: '0 0 6px', color: '#666', fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase' }}>
+                {getGreeting()}
+              </p>
+              <h1 style={{ margin: '0 0 6px', color: '#fff', fontSize: 36, fontWeight: 800, lineHeight: 1.1 }}>
+                {displayName}
+              </h1>
+              <p style={{ margin: '0 0 10px', color: '#555', fontSize: 13, letterSpacing: 0.3 }}>
+                {todayLabel}
+              </p>
+              <p style={{ margin: 0, color: '#888', fontSize: 15, fontStyle: 'italic' }}>
                 What are you committing to today?
               </p>
             </div>
@@ -549,6 +555,11 @@ export default function Dashboard({ navigate, userId }) {
                 Check off each pillar as you complete it.
               </p>
             </div>
+
+            {/* Name label above shield */}
+            <p style={{ margin: '0 0 2px', color: '#444', fontSize: 12, textAlign: 'center', letterSpacing: 0.5 }}>
+              {displayName}
+            </p>
 
             {/* Shield + streak stats */}
             <ShieldWithStats commit={commit} streak={streak} />
