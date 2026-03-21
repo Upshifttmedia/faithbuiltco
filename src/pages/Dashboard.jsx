@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth }        from '../hooks/useAuth'
 import { useStreak }      from '../hooks/useStreak'
 import { useDailyCommit } from '../hooks/useDailyCommit'
+import { getLocalDate }   from '../lib/dateUtils'
 import ArmorShield        from '../components/Dashboard/ArmorShield'
 import { supabase }       from '../lib/supabase'
 
@@ -371,7 +372,7 @@ function PillarPreviewCard({ pillar, text }) {
 export default function Dashboard({ navigate, userId }) {
   const { user, profile }                   = useAuth()
   const { streak }                          = useStreak(userId)
-  const { commit, yesterdayCommit, loading, confirmPillar, unconfirmPillar, updateCommitment } = useDailyCommit(userId)
+  const { commit, yesterdayCommit, loading, confirmPillar, unconfirmPillar, updateCommitment, refetch } = useDailyCommit(userId)
 
   const [animating, setAnimating]     = useState(null)   // pillar key being animated
   const [showAllFour, setShowAllFour] = useState(false)
@@ -671,9 +672,10 @@ export default function Dashboard({ navigate, userId }) {
           <div style={{ display: 'flex', gap: 8 }}>
             <button
               onClick={async () => {
-                const { getLocalDate } = await import('../lib/dateUtils')
                 const today = getLocalDate()
-                await supabase
+
+                // 1. Reset evening data in daily_commits
+                const { error: commitErr } = await supabase
                   .from('daily_commits')
                   .update({
                     evening_done:          false,
@@ -685,6 +687,21 @@ export default function Dashboard({ navigate, userId }) {
                   })
                   .eq('user_id', userId)
                   .eq('commit_date', today)
+
+                if (commitErr) {
+                  console.error('[FaithBuilt] reset daily_commits error:', commitErr)
+                  return
+                }
+
+                // 2. Roll streak back by 1 (floor at 0)
+                await supabase
+                  .from('streaks')
+                  .update({ current_streak: Math.max(0, (streak?.current_streak ?? 1) - 1) })
+                  .eq('user_id', userId)
+
+                // 3. Refresh local state so dashboard reflects the reset
+                await refetch()
+
                 setResetConfirm(false)
                 navigate('evening')
               }}
