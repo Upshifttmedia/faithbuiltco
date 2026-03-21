@@ -6,7 +6,12 @@
       "Bash(npx web-push:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(momentum\" / \"Full commitment\" with days-per-week as sublabel.:*)",
+      "Bash(supabase functions:*)",
+      "Bash(supabase link:*)",
+      "Bash(git rm:*)",
+      "Bash(is ready.\" / \"The day is almost done. Close the loop.\" /:*)"
     ]
   }
 }
