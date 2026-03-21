@@ -56,3 +56,46 @@ self.addEventListener('notificationclick', (event) => {
       })
   )
 })
+
+// ── Network-first fetch strategy ──────────────────────────────────────────
+// Supabase API requests are NEVER cached — they always hit the network so
+// the app always sees fresh database state.
+// All other requests (app shell, assets) use network-first with a cache
+// fallback so the app still loads offline if the network is unavailable.
+const CACHE_NAME = 'faithbuilt-' + VERSION
+
+self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url)
+
+  // Pass Supabase calls straight through — no caching, no interception.
+  if (
+    url.hostname.includes('supabase.co') ||
+    url.hostname.includes('supabase.io')
+  ) {
+    event.respondWith(fetch(event.request))
+    return
+  }
+
+  // Non-GET requests (POST/PATCH/DELETE) go straight to network.
+  if (event.request.method !== 'GET') {
+    event.respondWith(fetch(event.request))
+    return
+  }
+
+  // Network-first for everything else (HTML, JS, CSS, images).
+  event.respondWith(
+    fetch(event.request)
+      .then(response => {
+        // Cache a clone of the successful response for offline fallback.
+        if (response.ok) {
+          const clone = response.clone()
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone))
+        }
+        return response
+      })
+      .catch(() =>
+        // Network failed — serve from cache if available.
+        caches.match(event.request)
+      )
+  )
+})
