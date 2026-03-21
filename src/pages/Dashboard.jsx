@@ -408,13 +408,10 @@ export default function Dashboard({ navigate, userId }) {
     ? PILLARS.filter(p => commit[`${p.key}_confirmed`]).length
     : 0
 
-  // Show evening CTA only if: day phase + evening_done=false + current time >= user's evening_time
-  const showEveningCTA = phase === 'day' && (() => {
-    if (!eveningTime) return false
-    const [hh, mm] = eveningTime.split(':').map(Number)
-    const now = new Date()
-    return now.getHours() * 60 + now.getMinutes() >= hh * 60 + (mm || 0)
-  })()
+  // Show evening CTA whenever morning is done and evening isn't yet.
+  // Time check temporarily removed for testing — restore before launch:
+  //   phase === 'day' && eveningTime && (now >= eveningTime)
+  const showEveningCTA = phase === 'day'
 
   async function handleConfirm(pillarKey) {
     if (!commit) return
@@ -644,11 +641,13 @@ export default function Dashboard({ navigate, userId }) {
       <button
         onClick={() => navigate('evening')}
         style={{
-          position: 'fixed', bottom: 24, right: 16, zIndex: 50,
-          background: 'rgba(255,255,255,0.05)',
-          border: '1px solid rgba(255,255,255,0.1)',
-          borderRadius: 8, padding: '8px 12px',
-          color: '#444', fontSize: 11, cursor: 'pointer',
+          position: 'fixed', bottom: 80, right: 16, zIndex: 999,
+          background: '#C9A84C',
+          border: 'none',
+          borderRadius: 8, padding: '12px 16px',
+          color: '#000', fontSize: 13,
+          fontWeight: '700',
+          cursor: 'pointer',
         }}
       >
         Test Evening
