@@ -19,15 +19,6 @@ function urlBase64ToUint8Array(base64String) {
  */
 export async function subscribeToPush(userId) {
   const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY
-  console.log('[FaithBuilt] subscribeToPush called', {
-    userId,
-    vapidKeyPresent: !!vapidKey,
-    vapidKeyPrefix: vapidKey ? vapidKey.slice(0, 12) + '…' : 'MISSING',
-    pushManagerAvailable: 'PushManager' in window,
-    serviceWorkerAvailable: 'serviceWorker' in navigator,
-    notificationPermission: typeof Notification !== 'undefined'
-      ? Notification.permission : 'unavailable',
-  })
 
   try {
     // 1. Fast-fail if the VAPID key is missing — avoids a misleading
@@ -41,41 +32,34 @@ export async function subscribeToPush(userId) {
     }
 
     // 2. Permission
-    console.log('[FaithBuilt] Requesting notification permission…')
     const permission = await Notification.requestPermission()
-    console.log('[FaithBuilt] Permission result:', permission)
     if (permission !== 'granted') {
       return { subscription: null, error: new Error('Notification permission denied.') }
     }
 
     // 3. Service-worker registration
-    console.log('[FaithBuilt] Waiting for service worker…')
     const reg = await navigator.serviceWorker.ready
-    console.log('[FaithBuilt] Service worker ready:', reg.scope)
 
     // 4. Subscribe via PushManager
-    console.log('[FaithBuilt] Subscribing via PushManager…')
     const pushSub = await reg.pushManager.subscribe({
       userVisibleOnly:      true,
       applicationServerKey: urlBase64ToUint8Array(vapidKey),
     })
-    console.log('[FaithBuilt] PushManager subscription created:', pushSub.endpoint.slice(0, 60) + '…')
 
     // 5. Persist to Supabase
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    console.log('[FaithBuilt] Session:', session?.user?.id ?? 'NONE', sessionError ?? '')
+    const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) {
       await pushSub.unsubscribe()
       return { subscription: null, error: new Error('No active session') }
     }
-    const { data, error } = await supabase
+
+    const { error } = await supabase
       .from('push_subscriptions')
       .upsert(
         { user_id: session.user.id, subscription: pushSub.toJSON() },
         { onConflict: 'user_id', ignoreDuplicates: false }
       )
       .select()
-    console.log('[FaithBuilt] Upsert result - data:', JSON.stringify(data), 'error:', error ? JSON.stringify(error) : 'none')
 
     if (error) {
       // Roll back the browser-side subscription so state stays consistent
@@ -83,8 +67,6 @@ export async function subscribeToPush(userId) {
       return { subscription: null, error }
     }
 
-    console.log('[FaithBuilt] UPSERT COMPLETE - checking table now')
-    console.log('[FaithBuilt] Subscription saved to Supabase. Push is active.')
     return { subscription: pushSub, error: null }
   } catch (err) {
     console.error('[FaithBuilt] subscribeToPush error:', err)
@@ -100,7 +82,6 @@ export async function subscribeToPush(userId) {
  * Returns { error }
  */
 export async function unsubscribeFromPush(userId) {
-  console.log('[FaithBuilt] !!UNSUBSCRIBE CALLED!!', new Error().stack)
   try {
     const reg = await navigator.serviceWorker.ready
     const pushSub = await reg.pushManager.getSubscription()

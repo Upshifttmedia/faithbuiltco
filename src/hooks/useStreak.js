@@ -76,7 +76,6 @@ export function useStreak(userId) {
             { onConflict: 'user_id' }
           )
           .select()
-        console.log('[FaithBuilt] streak reset write:', JSON.stringify(resetData), resetError ? JSON.stringify(resetError) : 'ok')
       } else {
         setStreak(data)
       }

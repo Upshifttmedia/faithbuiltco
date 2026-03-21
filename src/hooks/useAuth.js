@@ -41,9 +41,6 @@ export function useAuth() {
       setProfile(data ?? null)
       if (data?.onboarding_done === true) {
         localStorage.setItem('fb_onboarding_done', '1')
-        console.log('[FaithBuilt] fetchProfile: onboarding_done=true, localStorage set')
-      } else {
-        console.log('[FaithBuilt] fetchProfile: onboarding_done=', data?.onboarding_done, '(ls unchanged)')
       }
     }
     // setProfileLoading + setProfileFetched batched last — App.jsx only
@@ -69,7 +66,6 @@ export function useAuth() {
     const type      = params.get('type')
 
     if (tokenHash && type) {
-      console.log('[FaithBuilt] token_hash detected:', type, tokenHash ? 'present' : 'missing')
 
       // A new signup confirmation — clear any stale onboarding flag so the
       // new user sees onboarding, not a cached state from a previous user.
@@ -78,7 +74,6 @@ export function useAuth() {
       }
 
       supabase.auth.verifyOtp({ token_hash: tokenHash, type }).then(({ data, error }) => {
-        console.log('[FaithBuilt] verifyOtp result:', data, error)
         if (!error && data?.session) {
           const u = data.session.user
           setUser(u)
@@ -92,9 +87,7 @@ export function useAuth() {
               .from('profiles')
               .upsert({ id: u.id, display_name: displayName }, { onConflict: 'id' })
               .select()
-              .then(({ data: d, error: e }) =>
-                console.log('[FaithBuilt] display_name saved on confirm:', JSON.stringify(d), e ? JSON.stringify(e) : 'ok')
-              )
+              .then(() => {})
           }
 
           fetchProfile(u.id)
@@ -158,12 +151,10 @@ export function useAuth() {
     // is required there is no session yet and RLS will block this — the
     // verifyOtp handler in the useEffect picks it up instead.
     if (!error && data?.user && data?.session) {
-      console.log('[FaithBuilt] instant confirm — saving display name:', displayName)
-      const { data: upsertData, error: upsertError } = await supabase
+      await supabase
         .from('profiles')
         .upsert({ id: data.user.id, display_name: displayName }, { onConflict: 'id' })
         .select()
-      console.log('[FaithBuilt] signUp upsert result:', JSON.stringify(upsertData), JSON.stringify(upsertError))
     }
     return { data, error }
   }

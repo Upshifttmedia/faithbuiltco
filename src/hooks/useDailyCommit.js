@@ -33,9 +33,7 @@ export function useDailyCommit(userId) {
     const today     = getLocalDate()
     const yesterday = getLocalDateOffset(1)
 
-    console.log('[FaithBuilt] fetching today commit from DB...')
-
-    const [{ data: todayData, error: todayError }, { data: ydayData }] = await Promise.all([
+    const [{ data: todayData }, { data: ydayData }] = await Promise.all([
       supabase
         .from('daily_commits').select('*')
         .eq('user_id', userId).eq('commit_date', today).maybeSingle(),
@@ -43,8 +41,6 @@ export function useDailyCommit(userId) {
         .from('daily_commits').select('*')
         .eq('user_id', userId).eq('commit_date', yesterday).maybeSingle(),
     ])
-
-    console.log('[FaithBuilt] today commit result:', todayData, todayError)
 
     setCommit(todayData   ?? null)
     setYesterday(ydayData ?? null)

@@ -409,10 +409,14 @@ export default function Dashboard({ navigate, userId }) {
     ? PILLARS.filter(p => commit[`${p.key}_confirmed`]).length
     : 0
 
-  // Show evening CTA whenever morning is done and evening isn't yet.
-  // Time check temporarily removed for testing — restore before launch:
-  //   phase === 'day' && eveningTime && (now >= eveningTime)
-  const showEveningCTA = phase === 'day'
+  // Show evening CTA only when: morning done, evening not yet done,
+  // AND current local time >= the user's chosen evening_time from push_subscriptions.
+  const showEveningCTA = phase === 'day' && (() => {
+    if (!eveningTime) return false
+    const [hh, mm] = eveningTime.split(':').map(Number)
+    const now = new Date()
+    return now.getHours() * 60 + now.getMinutes() >= hh * 60 + (mm || 0)
+  })()
 
   async function handleConfirm(pillarKey) {
     if (!commit) return
