@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react'
-import { useAuth } from '../hooks/useAuth'
-import { useStreak } from '../hooks/useStreak'
+import { useAuth }        from '../hooks/useAuth'
+import { useStreak }      from '../hooks/useStreak'
 import { useDailyCommit } from '../hooks/useDailyCommit'
-import ArmorShield from '../components/Dashboard/ArmorShield'
-
-const EVENING_HOUR = 18  // 6 pm local
+import ArmorShield        from '../components/Dashboard/ArmorShield'
+import { supabase }       from '../lib/supabase'
 
 const PILLARS = [
   { key: 'faith',       icon: '✦', label: 'Faith',       desc: 'Scripture and prayer' },
@@ -32,6 +31,10 @@ const ANIMATIONS = `
   @keyframes db-flash { 0% { background:rgba(201,168,76,0) } 40% { background:rgba(201,168,76,0.25) } 100% { background:rgba(201,168,76,0) } }
   @keyframes db-pop   { 0% { transform:scale(1) } 35% { transform:scale(1.18) } 70% { transform:scale(0.95) } 100% { transform:scale(1) } }
   @keyframes db-glow  { 0%,100% { box-shadow:0 0 0 0 rgba(201,168,76,0.3) } 50% { box-shadow:0 0 16px 4px rgba(201,168,76,0.5) } }
+  @keyframes db-border-pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(201,168,76,0.25), inset 0 0 0 0 rgba(201,168,76,0) }
+    50%     { box-shadow: 0 0 12px 3px rgba(201,168,76,0.35), inset 0 0 0 0 rgba(201,168,76,0) }
+  }
 `
 
 // ── Shield + streak stats block ───────────────────────────────────────
@@ -374,12 +377,24 @@ export default function Dashboard({ navigate, userId }) {
   const [showAllFour, setShowAllFour] = useState(false)
   const [showReview, setShowReview]   = useState(false)
   const [editingPillar, setEditing]   = useState(null)   // pillar object being edited
+  const [eveningTime, setEveningTime] = useState(null)   // "HH:MM" from push_subscriptions
 
   const displayName = profile?.display_name
     || user?.user_metadata?.display_name
     || 'Builder'
 
-  const isEvening = new Date().getHours() >= EVENING_HOUR
+  // Fetch this user's chosen evening notification time
+  useEffect(() => {
+    if (!userId) return
+    supabase
+      .from('push_subscriptions')
+      .select('evening_time')
+      .eq('user_id', userId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.evening_time) setEveningTime(data.evening_time)
+      })
+  }, [userId])
 
   // Derive phase from commit state
   const phase = !commit?.morning_done
@@ -392,6 +407,14 @@ export default function Dashboard({ navigate, userId }) {
   const confirmedCount = commit
     ? PILLARS.filter(p => commit[`${p.key}_confirmed`]).length
     : 0
+
+  // Show evening CTA only if: day phase + evening_done=false + current time >= user's evening_time
+  const showEveningCTA = phase === 'day' && (() => {
+    if (!eveningTime) return false
+    const [hh, mm] = eveningTime.split(':').map(Number)
+    const now = new Date()
+    return now.getHours() * 60 + now.getMinutes() >= hh * 60 + (mm || 0)
+  })()
 
   async function handleConfirm(pillarKey) {
     if (!commit) return
@@ -530,31 +553,38 @@ export default function Dashboard({ navigate, userId }) {
               />
             ))}
 
-            {/* Evening CTA — visible after 6 pm */}
-            {isEvening && (
-              <button
-                onClick={() => navigate('evening')}
-                style={{
-                  width: '100%',
-                  background: 'rgba(201,168,76,0.1)',
-                  border: '1px solid rgba(201,168,76,0.4)',
-                  borderRadius: 14, padding: '16px 20px',
-                  cursor: 'pointer', textAlign: 'left',
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  marginTop: 20, marginBottom: 4,
-                  animation: 'db-pulse 2.4s ease infinite',
-                }}
-              >
-                <div>
-                  <p style={{ margin: '0 0 4px', color: '#C9A84C', fontSize: 15, fontWeight: 700 }}>
-                    Evening reflection is ready.
-                  </p>
-                  <p style={{ margin: 0, color: '#888', fontSize: 13 }}>
-                    Close the loop →
-                  </p>
+            {/* Evening CTA — visible when current time >= user's chosen evening_time */}
+            {showEveningCTA && (
+              <div style={{
+                border: '1.5px solid #C9A84C',
+                borderRadius: 14, padding: '18px 20px',
+                marginTop: 20, marginBottom: 4,
+                background: 'rgba(201,168,76,0.05)',
+                animation: 'db-border-pulse 2.5s ease infinite',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 14 }}>
+                  <span style={{ color: '#C9A84C', fontSize: 18, flexShrink: 0, marginTop: 2 }}>✦</span>
+                  <div style={{ textAlign: 'left' }}>
+                    <p style={{ margin: '0 0 5px', color: '#C9A84C', fontSize: 15, fontWeight: 700 }}>
+                      Evening reflection is ready.
+                    </p>
+                    <p style={{ margin: 0, color: '#888', fontSize: 13, lineHeight: 1.5 }}>
+                      The day is almost done. Close the loop.
+                    </p>
+                  </div>
                 </div>
-                <span style={{ color: '#C9A84C', fontSize: 22 }}>›</span>
-              </button>
+                <button
+                  onClick={() => navigate('evening')}
+                  style={{
+                    width: '100%', background: '#C9A84C',
+                    border: 'none', borderRadius: 10,
+                    padding: '13px 0', color: '#000',
+                    fontWeight: 700, fontSize: 15, cursor: 'pointer',
+                  }}
+                >
+                  Begin Reflection →
+                </button>
+              </div>
             )}
           </>
         )}
@@ -609,6 +639,20 @@ export default function Dashboard({ navigate, userId }) {
         )}
 
       </main>
+
+      {/* ── Test Evening button (remove before launch) ── */}
+      <button
+        onClick={() => navigate('evening')}
+        style={{
+          position: 'fixed', bottom: 24, right: 16, zIndex: 50,
+          background: 'rgba(255,255,255,0.05)',
+          border: '1px solid rgba(255,255,255,0.1)',
+          borderRadius: 8, padding: '8px 12px',
+          color: '#444', fontSize: 11, cursor: 'pointer',
+        }}
+      >
+        Test Evening
+      </button>
     </div>
   )
 }

@@ -120,12 +120,15 @@ export function useDailyCommit(userId) {
 
   // ── Evening save ─────────────────────────────────────────────────────
   // eveningConfirms: { faith: bool, body: bool, mind: bool, stewardship: bool }
-  // Only flips a column to true — never overwrites an existing true.
-  async function saveEvening(eveningConfirms) {
+  // carryForward: optional text to save in carry_forward column
+  //   (requires: ALTER TABLE daily_commits ADD COLUMN IF NOT EXISTS carry_forward text)
+  // Only flips a _confirmed column to true — never overwrites an existing true.
+  async function saveEvening(eveningConfirms, carryForward = '') {
     if (!userId) return null
 
     const today   = getLocalDate()
     const updates = { evening_done: true }
+    if (carryForward) updates.carry_forward = carryForward
     for (const [key, val] of Object.entries(eveningConfirms)) {
       if (val) updates[`${key}_confirmed`] = true
     }
