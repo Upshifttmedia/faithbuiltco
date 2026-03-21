@@ -21,6 +21,15 @@ export function useDailyCommit(userId) {
   const fetchCommit = useCallback(async () => {
     if (!userId) { setLoading(false); return }
 
+    // Always reset to loading state before hitting Supabase.
+    // This ensures every mount and every manual refetch() shows a clean
+    // loading state and never serves stale in-memory data.
+    // There is intentionally NO localStorage/sessionStorage caching here —
+    // daily_commits data must always come fresh from the database.
+    setCommit(null)
+    setYesterday(null)
+    setLoading(true)
+
     const today     = getLocalDate()
     const yesterday = getLocalDateOffset(1)
 
