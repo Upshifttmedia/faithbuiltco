@@ -378,6 +378,7 @@ export default function Dashboard({ navigate, userId }) {
   const [showReview, setShowReview]   = useState(false)
   const [editingPillar, setEditing]   = useState(null)   // pillar object being edited
   const [eveningTime, setEveningTime] = useState(null)   // "HH:MM" from push_subscriptions
+  const [resetConfirm, setResetConfirm] = useState(false) // Test Evening reset prompt
 
   const displayName = profile?.display_name
     || user?.user_metadata?.display_name
@@ -638,20 +639,77 @@ export default function Dashboard({ navigate, userId }) {
       </main>
 
       {/* ── Test Evening button (remove before launch) ── */}
-      <button
-        onClick={() => navigate('evening')}
-        style={{
+      {!resetConfirm ? (
+        <button
+          onClick={() => {
+            if (commit?.evening_done) {
+              setResetConfirm(true)
+            } else {
+              navigate('evening')
+            }
+          }}
+          style={{
+            position: 'fixed', bottom: 80, right: 16, zIndex: 999,
+            background: '#C9A84C', border: 'none',
+            borderRadius: 8, padding: '12px 16px',
+            color: '#000', fontSize: 13, fontWeight: 700,
+            cursor: 'pointer',
+          }}
+        >
+          Test Evening
+        </button>
+      ) : (
+        /* Reset confirmation — shown when evening_done = true */
+        <div style={{
           position: 'fixed', bottom: 80, right: 16, zIndex: 999,
-          background: '#C9A84C',
-          border: 'none',
-          borderRadius: 8, padding: '12px 16px',
-          color: '#000', fontSize: 13,
-          fontWeight: '700',
-          cursor: 'pointer',
-        }}
-      >
-        Test Evening
-      </button>
+          background: '#1a1a1a', border: '1px solid #C9A84C',
+          borderRadius: 10, padding: '12px 14px',
+          display: 'flex', flexDirection: 'column', gap: 8,
+          maxWidth: 200,
+        }}>
+          <p style={{ margin: 0, color: '#aaa', fontSize: 12 }}>Reset &amp; retest?</p>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              onClick={async () => {
+                const { getLocalDate } = await import('../lib/dateUtils')
+                const today = getLocalDate()
+                await supabase
+                  .from('daily_commits')
+                  .update({
+                    evening_done:          false,
+                    faith_confirmed:       false,
+                    body_confirmed:        false,
+                    mind_confirmed:        false,
+                    stewardship_confirmed: false,
+                    carry_forward:         null,
+                  })
+                  .eq('user_id', userId)
+                  .eq('commit_date', today)
+                setResetConfirm(false)
+                navigate('evening')
+              }}
+              style={{
+                flex: 1, background: '#C9A84C', border: 'none',
+                borderRadius: 6, padding: '8px 0',
+                color: '#000', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+              }}
+            >
+              Reset
+            </button>
+            <button
+              onClick={() => setResetConfirm(false)}
+              style={{
+                flex: 1, background: 'transparent',
+                border: '1px solid #333',
+                borderRadius: 6, padding: '8px 0',
+                color: '#666', fontSize: 12, cursor: 'pointer',
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

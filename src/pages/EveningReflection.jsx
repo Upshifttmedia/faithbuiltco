@@ -6,9 +6,8 @@
  * Step 5  : Carry-forward textarea
  * Post-save phases: 'milestone' → 'full' | 'partial' | 'missed'
  *
- * Animation note: key={step} is placed on the INNER content div (child of a
- * stable outer wrapper) so React unmounts/remounts it on every step change,
- * reliably re-triggering the CSS fade-in animation.
+ * Animation note: key={step} is on the INNER content div (child of a stable
+ * outer wrapper) so React properly unmounts/remounts on each step change.
  *
  * DB note: daily_commits needs a carry_forward text column.
  *   ALTER TABLE daily_commits ADD COLUMN IF NOT EXISTS carry_forward text;
@@ -24,6 +23,46 @@ const PILLARS = [
   { key: 'mind',        icon: '◈', label: 'Mind' },
   { key: 'stewardship', icon: '◆', label: 'Stewardship' },
 ]
+
+// ── Daily rotating encouragement quotes (index = day of week, 0=Sun) ──
+const QUOTES = {
+  faith: [
+    "Prayer is not preparation for the battle. It is the battle.",
+    "The man who kneels before God can stand before anyone.",
+    "Faith without discipline is just a feeling.",
+    "Your morning with God sets the tone for everything that follows.",
+    "Scripture is not content to consume. It's a mirror to look into.",
+    "The quiet moments with God are where character is built.",
+    "Showing up for God daily is how you become who He made you to be.",
+  ],
+  body: [
+    "Your body is the instrument your purpose moves through. Keep it sharp.",
+    "Discipline in the body builds discipline in everything else.",
+    "The way you treat your body is a statement about what you believe.",
+    "Hard days in the body build soft character. Push through.",
+    "You don't have to feel like it. You just have to do it.",
+    "The temple requires maintenance. Show up for it.",
+    "Every rep, every mile, every healthy choice is an act of stewardship.",
+  ],
+  mind: [
+    "What you feed your mind becomes what you see in the world.",
+    "The disciplined mind is the most powerful weapon you own.",
+    "Read. Think. Reflect. The man who stops learning stops growing.",
+    "Protect your focus like it's your most valuable resource. It is.",
+    "Gratitude is not weakness. It's the foundation of a clear mind.",
+    "Remove what distracts. Add what sharpens.",
+    "The battle is won or lost in the mind before it ever reaches the field.",
+  ],
+  stewardship: [
+    "How you handle what you have determines what you'll be trusted with.",
+    "Serving without an agenda is the highest form of leadership.",
+    "Your responsibilities are not a burden. They are your calling.",
+    "The faithful steward doesn't wait to be asked. He acts.",
+    "Money, time, relationships — steward them all with intention.",
+    "What you do with what God gave you is your answer to Him.",
+    "Small faithfulness in daily things leads to great trust in eternal ones.",
+  ],
+}
 
 const MILESTONE_COPY = {
   7:  { icon: '🔥', line1: '7 days.',   line2: 'A week of discipline.',    line3: 'You are not the same man.' },
@@ -50,28 +89,17 @@ const CSS = `
     0%,100% { text-shadow: 0 0 0 transparent }
     50%     { text-shadow: 0 0 32px rgba(201,168,76,0.75) }
   }
-  /* Walking cross figure — horizontal drift + vertical bob + lean + gold glow pulse */
   @keyframes er-walk {
-    0%   {
-      transform: translateX(0px)  translateY(0px)  rotate(0deg);
-      filter: brightness(10) drop-shadow(0 0 3px rgba(201,168,76,0.25));
-    }
-    25%  {
-      transform: translateX(6px)  translateY(-3px) rotate(3deg);
-      filter: brightness(10) drop-shadow(0 0 10px rgba(201,168,76,0.9));
-    }
-    50%  {
-      transform: translateX(0px)  translateY(0px)  rotate(0deg);
-      filter: brightness(10) drop-shadow(0 0 3px rgba(201,168,76,0.25));
-    }
-    75%  {
-      transform: translateX(6px)  translateY(-3px) rotate(3deg);
-      filter: brightness(10) drop-shadow(0 0 10px rgba(201,168,76,0.9));
-    }
-    100% {
-      transform: translateX(0px)  translateY(0px)  rotate(0deg);
-      filter: brightness(10) drop-shadow(0 0 3px rgba(201,168,76,0.25));
-    }
+    0%   { transform:translateX(0px) translateY(0px) rotate(0deg);
+            filter:brightness(10) drop-shadow(0 0 3px rgba(201,168,76,0.25)); }
+    25%  { transform:translateX(6px) translateY(-3px) rotate(3deg);
+            filter:brightness(10) drop-shadow(0 0 10px rgba(201,168,76,0.9)); }
+    50%  { transform:translateX(0px) translateY(0px) rotate(0deg);
+            filter:brightness(10) drop-shadow(0 0 3px rgba(201,168,76,0.25)); }
+    75%  { transform:translateX(6px) translateY(-3px) rotate(3deg);
+            filter:brightness(10) drop-shadow(0 0 10px rgba(201,168,76,0.9)); }
+    100% { transform:translateX(0px) translateY(0px) rotate(0deg);
+            filter:brightness(10) drop-shadow(0 0 3px rgba(201,168,76,0.25)); }
   }
 `
 
@@ -81,24 +109,24 @@ const BG   = '#0a0a0a'
 const todayLabel = new Date().toLocaleDateString('en-US', {
   weekday: 'long', month: 'long', day: 'numeric',
 })
+const DAY_INDEX = new Date().getDay() // 0 (Sun) – 6 (Sat)
 
-// ── Shared style constants ────────────────────────────────────────────
+// ── Shared styles ─────────────────────────────────────────────────────
 const sScreen = {
   position: 'fixed', inset: 0,
   background: BG,
   display: 'flex', flexDirection: 'column',
   zIndex: 100,
 }
-// Used for post-save overlay screens (milestone / celebration)
-const sOverlay = {
-  ...sScreen,
-  animation: 'er-fade 0.35s ease both',
-}
+const sOverlay = { ...sScreen, animation: 'er-fade 0.35s ease both' }
+
+// Celebration / overlay bottom buttons — 100px bottom padding for nav bar
 const sBottom = {
-  padding: '0 24px 48px',
+  padding: '0 24px 100px',
   display: 'flex', flexDirection: 'column',
   gap: 12, flexShrink: 0,
 }
+
 const sBtnGold = {
   width: '100%', background: GOLD, border: 'none',
   borderRadius: 12, padding: '16px 0',
@@ -117,7 +145,6 @@ const sBtnBack = {
   color: '#555', fontSize: 15,
   cursor: 'pointer', padding: 0,
 }
-// Centered column container that fills remaining vertical space
 const sCenter = {
   flex: 1,
   display: 'flex', flexDirection: 'column',
@@ -144,22 +171,12 @@ export default function EveningReflection({ navigate, userId }) {
   const [saving, setSaving]   = useState(false)
 
   // ── Post-save state ─────────────────────────────────────────────────
-  const [phase, setPhase]            = useState(null) // 'milestone'|'full'|'partial'|'missed'
+  const [phase, setPhase]            = useState(null)
   const [milestoneDay, setMilestone] = useState(null)
   const [celebData, setCelebData]    = useState({ newStreak: 0, resultType: 'full' })
-  const [dispStreak, setDispStreak]  = useState(0)   // for count-up animation
+  const [dispStreak, setDispStreak]  = useState(0)
 
-  // ── Auto-advance already-confirmed pillars after 2 s ────────────────
-  useEffect(() => {
-    if (step < 1 || step > 4 || !commit) return
-    const p = PILLARS[step - 1]
-    if (commit[`${p.key}_confirmed`]) {
-      const t = setTimeout(() => setStep(s => s + 1), 2000)
-      return () => clearTimeout(t)
-    }
-  }, [step, commit])
-
-  // ── Count-up animation for full celebration ──────────────────────────
+  // Count-up animation for full celebration
   useEffect(() => {
     if (phase !== 'full') return
     setDispStreak(Math.max(0, celebData.newStreak - 1))
@@ -168,31 +185,39 @@ export default function EveningReflection({ navigate, userId }) {
   }, [phase, celebData.newStreak])
 
   // ── Lock-in handler ──────────────────────────────────────────────────
+  // Note: called as () => handleLockIn() or () => handleLockIn('')
+  // so carryOverride is always undefined (use carryText) or '' (skip).
+  // Do NOT pass as onClick={handleLockIn} — that passes the SyntheticEvent.
   async function handleLockIn(carryOverride) {
     setSaving(true)
     const carry = carryOverride !== undefined ? carryOverride : carryText
 
     const finalConfirms = {}
     for (const p of PILLARS) {
-      finalConfirms[p.key] = !!commit[`${p.key}_confirmed`] || selections[p.key] === true
+      finalConfirms[p.key] = !!commit?.[`${p.key}_confirmed`] || selections[p.key] === true
     }
     const confirmedCount = Object.values(finalConfirms).filter(Boolean).length
 
-    await saveEvening(finalConfirms, carry.trim())
-    const result = await updateStreakFromEvening(confirmedCount)
-    setSaving(false)
+    try {
+      await saveEvening(finalConfirms, typeof carry === 'string' ? carry.trim() : '')
+      const result = await updateStreakFromEvening(confirmedCount)
 
-    const resultType  = result?.resultType  ?? (confirmedCount >= 4 ? 'full' : confirmedCount === 3 ? 'partial' : 'missed')
-    const newStreak   = result?.newStreak   ?? 0
-    const isMilestone = result?.isMilestone ?? false
+      const resultType  = result?.resultType  ?? (confirmedCount >= 4 ? 'full' : confirmedCount === 3 ? 'partial' : 'missed')
+      const newStreak   = result?.newStreak   ?? 0
+      const isMilestone = result?.isMilestone ?? false
 
-    setCelebData({ newStreak, resultType })
+      setCelebData({ newStreak, resultType })
 
-    if (isMilestone && MILESTONE_COPY[newStreak]) {
-      setMilestone(newStreak)
-      setPhase('milestone')
-    } else {
-      setPhase(resultType)
+      if (isMilestone && MILESTONE_COPY[newStreak]) {
+        setMilestone(newStreak)
+        setPhase('milestone')
+      } else {
+        setPhase(resultType)
+      }
+    } catch (err) {
+      console.error('[FaithBuilt] handleLockIn error:', err)
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -209,7 +234,7 @@ export default function EveningReflection({ navigate, userId }) {
         <div style={sCenter}>
           <div style={{ fontSize: 52, color: GOLD, marginBottom: 24, animation: 'er-pulse 2s ease infinite' }}>✦</div>
           <h2 style={{ color: GOLD, fontSize: 28, fontWeight: 800, margin: '0 0 12px' }}>Day locked in.</h2>
-          <p style={{ color: '#666', fontSize: 16, margin: '0 0 48px' }}>
+          <p style={{ color: '#666', fontSize: 16, margin: 0 }}>
             You already closed the loop tonight. Rest well.
           </p>
         </div>
@@ -230,7 +255,7 @@ export default function EveningReflection({ navigate, userId }) {
           <h2 style={{ color: '#fff', fontSize: 26, fontWeight: 800, margin: '0 0 12px' }}>
             No morning commit found.
           </h2>
-          <p style={{ color: '#666', fontSize: 16, margin: '0 0 48px' }}>
+          <p style={{ color: '#666', fontSize: 16, margin: 0 }}>
             Start your day with a morning commitment first.
           </p>
         </div>
@@ -266,17 +291,11 @@ export default function EveningReflection({ navigate, userId }) {
       <div style={sOverlay}>
         <style>{CSS}</style>
         <div style={sCenter}>
-          {/* Walking cross figure — white with pulsing gold glow */}
           <img
             src="/pickupyourcross.png"
-            width={80} height={80}
-            alt=""
-            style={{
-              display: 'block',
-              objectFit: 'contain',
-              marginBottom: 24,
-              animation: 'er-walk 1.2s ease-in-out infinite',
-            }}
+            width={80} height={80} alt=""
+            style={{ display: 'block', objectFit: 'contain', marginBottom: 24,
+                     animation: 'er-walk 1.2s ease-in-out infinite' }}
           />
           <span style={{
             fontSize: 96, fontWeight: 900, color: GOLD,
@@ -288,15 +307,13 @@ export default function EveningReflection({ navigate, userId }) {
           }}>
             {dispStreak}
           </span>
-          <p style={{ color: '#fff', fontSize: 22, fontWeight: 700, margin: '0 0 10px', animation: 'er-fade 0.4s ease 0.35s both' }}>
+          <p style={{ color: '#fff', fontSize: 22, fontWeight: 700, margin: '0 0 10px' }}>
             Day {celebData.newStreak}. Locked in.
           </p>
-          <p style={{ color: '#888', fontSize: 16, margin: '0 0 4px', animation: 'er-fade 0.4s ease 0.5s both' }}>
+          <p style={{ color: '#888', fontSize: 16, margin: '0 0 4px' }}>
             You kept your word, {displayName}.
           </p>
-          <p style={{ color: '#888', fontSize: 16, margin: 0, animation: 'er-fade 0.4s ease 0.6s both' }}>
-            That's who you are.
-          </p>
+          <p style={{ color: '#888', fontSize: 16, margin: 0 }}>That's who you are.</p>
         </div>
         <div style={sBottom}>
           <button style={sBtnGold} onClick={() => navigate('dashboard')}>See my streak →</button>
@@ -343,11 +360,10 @@ export default function EveningReflection({ navigate, userId }) {
   }
 
   // ── Step screens (0–5) ───────────────────────────────────────────────
-  // Current pillar for steps 1–4
   const pillar      = step >= 1 && step <= 4 ? PILLARS[step - 1] : null
   const commitment  = pillar ? (commit?.[`${pillar.key}_commitment`] ?? '') : ''
   const isConfirmed = pillar ? !!commit?.[`${pillar.key}_confirmed`]        : false
-  const sel         = pillar ? selections[pillar.key]                        : null
+  const quote       = pillar ? QUOTES[pillar.key][DAY_INDEX]                : ''
 
   function advance() { setStep(s => Math.min(s + 1, 5)) }
   function goBack()  { setStep(s => Math.max(s - 1, 0)) }
@@ -360,16 +376,15 @@ export default function EveningReflection({ navigate, userId }) {
       {/* ── Header: back button + progress dots ── */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '16px 20px', flexShrink: 0, minHeight: 56, position: 'relative',
+        padding: '16px 20px', flexShrink: 0, minHeight: 56,
       }}>
-        {/* Back button */}
         <div style={{ minWidth: 48 }}>
           {step > 0 && (
             <button style={sBtnBack} onClick={goBack}>← Back</button>
           )}
         </div>
 
-        {/* Progress dots — shown for steps 1–4 */}
+        {/* Progress dots — shown for steps 1–4 only */}
         {step >= 1 && step <= 4 && (
           <div style={{ display: 'flex', gap: 7, alignItems: 'center' }}>
             {PILLARS.map((_, i) => {
@@ -389,11 +404,10 @@ export default function EveningReflection({ navigate, userId }) {
           </div>
         )}
 
-        {/* Spacer to balance back button */}
         <div style={{ minWidth: 48 }} />
       </div>
 
-      {/* ── Animated content area — key={step} causes remount + re-animation ── */}
+      {/* ── Animated content — key={step} remounts inner div on every step ── */}
       <div
         key={step}
         style={{
@@ -403,123 +417,131 @@ export default function EveningReflection({ navigate, userId }) {
         }}
       >
 
-        {/* ═══════════════════════════════════════════════ */}
-        {/* SCREEN 0 — Opening                            */}
-        {/* ═══════════════════════════════════════════════ */}
+        {/* ═══════════════════════════════════════════════════ */}
+        {/* SCREEN 0 — Opening                                */}
+        {/* Content + button together in center, shifted up   */}
+        {/* via paddingBottom so nothing hides behind nav bar */}
+        {/* ═══════════════════════════════════════════════════ */}
         {step === 0 && (
-          <>
-            <div style={sCenter}>
-              <h1 style={{ color: '#fff', fontSize: 28, fontWeight: 800, margin: '0 0 16px', lineHeight: 1.35 }}>
-                The day is almost done.
-              </h1>
-              <p style={{ color: '#666', fontSize: 16, margin: '0 0 14px', lineHeight: 1.65 }}>
-                {displayName}, did you show up as<br />who you said you were?
-              </p>
-              <p style={{ color: GOLD, fontSize: 13, letterSpacing: 0.5, margin: 0 }}>
-                {todayLabel}
-              </p>
-            </div>
-            <div style={sBottom}>
-              <button style={sBtnGold} onClick={() => setStep(1)}>
-                Let's find out →
-              </button>
-            </div>
-          </>
+          <div style={{ ...sCenter, paddingBottom: 120 }}>
+            <h1 style={{
+              color: '#fff', fontSize: 28, fontWeight: 800,
+              margin: '0 0 16px', lineHeight: 1.35,
+            }}>
+              The day is almost done.
+            </h1>
+            <p style={{ color: '#666', fontSize: 16, margin: '0 0 14px', lineHeight: 1.65 }}>
+              {displayName}, did you show up as<br />who you said you were?
+            </p>
+            <p style={{ color: GOLD, fontSize: 13, letterSpacing: 0.5, margin: '0 0 40px' }}>
+              {todayLabel}
+            </p>
+            <button style={{ ...sBtnGold, maxWidth: 340 }} onClick={() => setStep(1)}>
+              Let's find out →
+            </button>
+          </div>
         )}
 
-        {/* ═══════════════════════════════════════════════ */}
-        {/* SCREENS 1–4 — One pillar at a time            */}
-        {/* ═══════════════════════════════════════════════ */}
+        {/* ═══════════════════════════════════════════════════ */}
+        {/* SCREENS 1–4 — One pillar at a time               */}
+        {/* ═══════════════════════════════════════════════════ */}
         {step >= 1 && step <= 4 && pillar && (
-          <>
-            <div style={{ ...sCenter, paddingTop: 8, paddingBottom: 16 }}>
+          <div style={{ ...sCenter, paddingTop: 8, paddingBottom: 100 }}>
 
-              {/* Pillar icon */}
-              <div style={{ fontSize: 44, color: GOLD, marginBottom: 10 }}>
-                {pillar.icon}
-              </div>
-
-              {/* Pillar name */}
-              <h2 style={{
-                color: GOLD, fontSize: 36, fontWeight: 900,
-                margin: '0 0 32px', letterSpacing: 1,
-              }}>
-                {pillar.label}
-              </h2>
-
-              {/* Commitment label */}
-              <p style={{
-                color: '#555', fontSize: 11,
-                textTransform: 'uppercase', letterSpacing: 1.5,
-                margin: '0 0 10px',
-              }}>
-                This is what you committed to.
-              </p>
-
-              {/* Commitment text in gold italic */}
-              <p style={{
-                color: GOLD, fontSize: 18, fontStyle: 'italic',
-                margin: '0 0 36px', lineHeight: 1.65,
-                minHeight: 54, width: '100%',
-              }}>
-                {commitment
-                  ? <>"{commitment}"</>
-                  : <span style={{ color: '#444', fontStyle: 'normal', fontSize: 15 }}>No commitment recorded.</span>
-                }
-              </p>
-
-              {/* Already confirmed during the day */}
-              {isConfirmed ? (
-                <div style={{ width: '100%', textAlign: 'center' }}>
-                  <div style={{
-                    fontSize: 56, color: GOLD, marginBottom: 10,
-                    animation: 'er-pop 0.5s ease both',
-                  }}>
-                    ✓
-                  </div>
-                  <p style={{ color: '#aaa', fontSize: 16, margin: '0 0 4px' }}>
-                    You confirmed this earlier.
-                  </p>
-                  <p style={{ color: GOLD, fontSize: 15, fontWeight: 600, margin: '0 0 28px' }}>
-                    Well done.
-                  </p>
-                  <button
-                    style={{ ...sBtnDark, maxWidth: 200, margin: '0 auto', padding: '12px 0', fontSize: 15 }}
-                    onClick={advance}
-                  >
-                    Continue →
-                  </button>
-                </div>
-              ) : (
-                /* Not yet confirmed — "I showed up" / "I fell short" */
-                <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  <button
-                    style={sBtnGold}
-                    onClick={() => {
-                      setSelections(prev => ({ ...prev, [pillar.key]: true }))
-                      setTimeout(advance, 220)
-                    }}
-                  >
-                    I showed up
-                  </button>
-                  <button
-                    style={sBtnDark}
-                    onClick={() => {
-                      setSelections(prev => ({ ...prev, [pillar.key]: false }))
-                      setTimeout(advance, 220)
-                    }}
-                  >
-                    I fell short
-                  </button>
-                </div>
-              )}
+            {/* Icon */}
+            <div style={{ fontSize: 44, color: GOLD, marginBottom: 10 }}>
+              {pillar.icon}
             </div>
-          </>
+
+            {/* Pillar name */}
+            <h2 style={{
+              color: GOLD, fontSize: 36, fontWeight: 900,
+              margin: '0 0 28px', letterSpacing: 1,
+            }}>
+              {pillar.label}
+            </h2>
+
+            {/* Commitment label */}
+            <p style={{
+              color: '#555', fontSize: 11,
+              textTransform: 'uppercase', letterSpacing: 1.5,
+              margin: '0 0 10px',
+            }}>
+              This is what you committed to.
+            </p>
+
+            {/* Morning commitment text */}
+            <p style={{
+              color: GOLD, fontSize: 18, fontStyle: 'italic',
+              margin: '0 0 20px', lineHeight: 1.65,
+              minHeight: 54, width: '100%',
+            }}>
+              {commitment
+                ? <>"{commitment}"</>
+                : <span style={{ color: '#444', fontStyle: 'normal', fontSize: 15 }}>No commitment recorded.</span>
+              }
+            </p>
+
+            {/* Daily rotating encouragement quote */}
+            <p style={{
+              color: GOLD, fontSize: 13, fontStyle: 'italic',
+              margin: '0 0 28px', lineHeight: 1.55,
+              opacity: 0.75,
+            }}>
+              {quote}
+            </p>
+
+            {/* Already confirmed during the day — manual Continue, no auto-advance */}
+            {isConfirmed ? (
+              <div style={{ width: '100%', textAlign: 'center' }}>
+                <div style={{
+                  fontSize: 56, color: GOLD, marginBottom: 10,
+                  animation: 'er-pop 0.5s ease both',
+                }}>
+                  ✓
+                </div>
+                <p style={{ color: '#aaa', fontSize: 16, margin: '0 0 4px' }}>
+                  You confirmed this earlier.
+                </p>
+                <p style={{ color: GOLD, fontSize: 15, fontWeight: 600, margin: '0 0 28px' }}>
+                  Well done.
+                </p>
+                <button
+                  style={{ ...sBtnDark, maxWidth: 200, margin: '0 auto', padding: '12px 0', fontSize: 15 }}
+                  onClick={advance}
+                >
+                  Continue →
+                </button>
+              </div>
+            ) : (
+              /* Not confirmed — I showed up / I fell short */
+              <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <button
+                  style={sBtnGold}
+                  onClick={() => {
+                    setSelections(prev => ({ ...prev, [pillar.key]: true }))
+                    setTimeout(advance, 220)
+                  }}
+                >
+                  I showed up
+                </button>
+                <button
+                  style={sBtnDark}
+                  onClick={() => {
+                    setSelections(prev => ({ ...prev, [pillar.key]: false }))
+                    setTimeout(advance, 220)
+                  }}
+                >
+                  I fell short
+                </button>
+              </div>
+            )}
+          </div>
         )}
 
-        {/* ═══════════════════════════════════════════════ */}
-        {/* SCREEN 5 — Carry forward                      */}
-        {/* ═══════════════════════════════════════════════ */}
+        {/* ═══════════════════════════════════════════════════ */}
+        {/* SCREEN 5 — Carry forward                         */}
+        {/* ═══════════════════════════════════════════════════ */}
         {step === 5 && (
           <>
             <div style={{
@@ -558,11 +580,13 @@ export default function EveningReflection({ navigate, userId }) {
                 onBlur={e  => { e.target.style.borderColor = '#2a2a2a' }}
               />
             </div>
+
+            {/* Fixed buttons — 100px bottom padding for nav bar */}
             <div style={sBottom}>
               <button
                 style={{ ...sBtnGold, opacity: saving ? 0.6 : 1 }}
                 disabled={saving}
-                onClick={handleLockIn}
+                onClick={() => handleLockIn()}
               >
                 {saving ? 'Locking in…' : 'Lock in today.'}
               </button>
