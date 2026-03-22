@@ -1015,7 +1015,7 @@ textarea { resize: vertical; }
   margin-top: 2px;
   flex-shrink: 0;
 }
-.profile-pillar-name { font-size: 0.92rem; font-weight: 600; color: var(--text); }
+.profile-pillar-name { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #C9A84C; }
 .profile-pillar-tasks { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
 
 .btn-signout {
