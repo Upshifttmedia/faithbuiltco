@@ -492,7 +492,7 @@ export default function Dashboard({ navigate, userId }) {
         {phase === 'morning' && (
           <>
             {/* Greeting */}
-            <h2 style={{ margin: '0 0 12px', color: '#fff', fontSize: 26, fontWeight: 600, animation: 'db-fade 0.4s ease' }}>
+            <h2 style={{ margin: '0 0 8px', paddingLeft: 16, color: '#fff', fontSize: 26, fontWeight: 600, animation: 'db-fade 0.4s ease' }}>
               {getGreeting()} {displayName}.
             </h2>
 
@@ -546,7 +546,7 @@ export default function Dashboard({ navigate, userId }) {
             </div>
 
             {/* Greeting above shield */}
-            <h2 style={{ margin: '0 0 12px', color: '#fff', fontSize: 26, fontWeight: 600 }}>
+            <h2 style={{ margin: '0 0 8px', paddingLeft: 16, color: '#fff', fontSize: 26, fontWeight: 600 }}>
               {getGreeting()} {displayName}.
             </h2>
 
