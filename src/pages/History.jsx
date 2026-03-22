@@ -229,23 +229,29 @@ function DayCard({ dateStr, commit, isToday }) {
                 })}
               </div>
 
-              {/* ── CARRY FORWARD ── */}
+              {/* ── CARRIED FORWARD ── */}
               {commit.carry_forward && (
                 <>
-                  <div style={{ height: 1, background: 'rgba(255,255,255,0.05)', marginBottom: 12 }} />
+                  <div style={{ height: 1, background: 'rgba(255,255,255,0.05)', margin: '16px 0 14px' }} />
                   <p style={{
                     color: '#555', fontSize: 10, fontWeight: 700,
                     textTransform: 'uppercase', letterSpacing: 1.5,
-                    margin: '0 0 8px',
+                    margin: '0 0 10px',
                   }}>
-                    What you carried into the next day
+                    Carried Forward
                   </p>
-                  <p style={{
-                    color: '#888', fontSize: 13, fontStyle: 'italic',
-                    lineHeight: 1.6, margin: 0,
+                  {/* Gold left border block */}
+                  <div style={{
+                    borderLeft: '3px solid #C9A84C',
+                    paddingLeft: 12,
                   }}>
-                    "{commit.carry_forward}"
-                  </p>
+                    <p style={{
+                      color: '#C9A84C', fontSize: 14, fontStyle: 'italic',
+                      lineHeight: 1.65, margin: 0,
+                    }}>
+                      "{commit.carry_forward}"
+                    </p>
+                  </div>
                 </>
               )}
             </>
