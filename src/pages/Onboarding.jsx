@@ -58,7 +58,7 @@ export default function Onboarding({ userId, onComplete }) {
   if (step === 0) return (
     <div style={{
       minHeight: '100dvh',
-      background: '#0a0a0a',
+      background: `linear-gradient(rgba(0,0,0,0.72), rgba(0,0,0,0.72)), url('/bg-onboarding.jpg') center top / cover no-repeat`,
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',

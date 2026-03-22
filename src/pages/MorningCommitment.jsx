@@ -176,7 +176,7 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
 
   // ── Commitment form ──────────────────────────────────────────────────
   return (
-    <div className="app-shell">
+    <div className="app-shell" style={{ background: `linear-gradient(rgba(0,0,0,0.80), rgba(0,0,0,0.80)), url('/bg-morning.jpg') center / cover no-repeat` }}>
       {toast && <Toast {...toast} onDismiss={() => setToast(null)} />}
       <header className="top-bar">
         <button className="back-btn" onClick={() => navigate('dashboard')} aria-label="Back">

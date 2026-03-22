@@ -1920,7 +1920,7 @@ textarea { resize: vertical; }
 }
 
 .mc-field {
-  background: var(--bg-card);
+  background: rgba(0,0,0,0.5);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 16px;
@@ -2546,7 +2546,7 @@ textarea { resize: vertical; }
   gap: 12px;
 }
 .mc-field {
-  background: var(--bg-card);
+  background: rgba(0,0,0,0.5);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 14px 16px;

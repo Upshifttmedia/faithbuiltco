@@ -307,7 +307,7 @@ export default function EveningReflection({ navigate, userId }) {
   // ── Full day celebration — walking forward ───────────────────────────
   if (phase === 'full') {
     return (
-      <div style={sOverlay}>
+      <div style={{ ...sOverlay, background: `linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.65)), url('/bg-celebration.jpg') center / cover no-repeat` }}>
         <style>{CSS}</style>
         <div style={sCenter}>
           <img
