@@ -1,140 +1,265 @@
-import { useState, useRef } from 'react'
-import { useAuth } from '../hooks/useAuth'
-import { useCommunity } from '../hooks/useCommunity'
+/**
+ * CommunityFeed — Brotherhood teaser / waitlist page.
+ *
+ * Supabase table required (run once in SQL editor):
+ *
+ *   CREATE TABLE IF NOT EXISTS squad_waitlist (
+ *     id         uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+ *     email      text        NOT NULL,
+ *     user_id    uuid        REFERENCES auth.users(id),
+ *     created_at timestamptz DEFAULT now(),
+ *     UNIQUE(email)
+ *   );
+ *   ALTER TABLE squad_waitlist ENABLE ROW LEVEL SECURITY;
+ *   CREATE POLICY "Anyone can join waitlist"
+ *     ON squad_waitlist FOR INSERT WITH CHECK (true);
+ *   CREATE POLICY "Users see own entry"
+ *     ON squad_waitlist FOR SELECT
+ *     USING (auth.uid() = user_id OR user_id IS NULL);
+ */
+import { useState } from 'react'
+import { useAuth }  from '../hooks/useAuth'
+import { supabase } from '../lib/supabase'
 
-const todayLabel = new Date().toLocaleDateString('en-US', {
-  weekday: 'long', month: 'long', day: 'numeric',
-})
+const GOLD = '#C9A84C'
+const BG   = '#0a0a0a'
 
-function timeAgo(ts) {
-  const diff = Math.floor((Date.now() - new Date(ts)) / 60000)
-  if (diff < 1) return 'just now'
-  if (diff < 60) return `${diff}m ago`
-  const h = Math.floor(diff / 60)
-  if (h < 24) return `${h}h ago`
-  return `${Math.floor(h / 24)}d ago`
-}
+const CSS = `
+  @keyframes walkForward {
+    0%   { transform: translateX(0px) translateY(0px) rotate(0deg);
+           filter: brightness(10) drop-shadow(0 0 4px ${GOLD}); }
+    25%  { transform: translateX(3px) translateY(-2px) rotate(2deg);
+           filter: brightness(10) drop-shadow(0 0 12px ${GOLD}); }
+    50%  { transform: translateX(6px) translateY(0px) rotate(0deg);
+           filter: brightness(10) drop-shadow(0 0 4px ${GOLD}); }
+    75%  { transform: translateX(3px) translateY(-2px) rotate(-2deg);
+           filter: brightness(10) drop-shadow(0 0 12px ${GOLD}); }
+    100% { transform: translateX(0px) translateY(0px) rotate(0deg);
+           filter: brightness(10) drop-shadow(0 0 4px ${GOLD}); }
+  }
+`
+
+const FEATURES = [
+  {
+    icon: '✦',
+    name: "Your Squad's Shield",
+    desc: "See every brother's armor. Know who showed up today.",
+  },
+  {
+    icon: '🔥',
+    name: 'Absence Alerts',
+    desc: "When a brother goes quiet for 2 days, the squad gets notified. No man left behind.",
+  },
+  {
+    icon: '🙏',
+    name: 'Prayer Requests',
+    desc: 'Post a need. Your brothers pray. Iron sharpens iron.',
+  },
+  {
+    icon: '⚡',
+    name: 'Squad Streaks',
+    desc: 'A collective streak that only grows when everyone shows up. Rise together.',
+  },
+]
 
 export default function CommunityFeed() {
   const { user } = useAuth()
-  const { posts, myReactions, loading, posting, addPost, toggleReaction } = useCommunity(
-    user?.id,
-    user?.email
-  )
-  const [draft, setDraft] = useState('')
-  const [charErr, setCharErr] = useState(false)
-  const textRef = useRef(null)
 
-  async function handlePost(e) {
+  const [email,   setEmail]   = useState('')
+  const [status,  setStatus]  = useState(null) // null | 'success' | 'duplicate' | 'error'
+  const [saving,  setSaving]  = useState(false)
+
+  async function handleWaitlist(e) {
     e.preventDefault()
-    if (!draft.trim()) return
-    if (draft.length > 200) { setCharErr(true); return }
-    const ok = await addPost(draft)
-    if (ok) setDraft('')
-  }
+    const trimmed = email.trim().toLowerCase()
+    if (!trimmed) return
+    setSaving(true)
 
-  function handleDraftChange(e) {
-    setDraft(e.target.value)
-    setCharErr(false)
+    const { error } = await supabase
+      .from('squad_waitlist')
+      .insert({ email: trimmed, user_id: user?.id ?? null })
+
+    setSaving(false)
+
+    if (!error) {
+      setStatus('success')
+    } else if (error.code === '23505') {
+      // unique constraint violation — already on the list
+      setStatus('duplicate')
+    } else {
+      setStatus('error')
+    }
   }
 
   return (
-    <div className="app-shell">
+    <div className="app-shell" style={{ background: BG }}>
+      <style>{CSS}</style>
+
       <header className="top-bar">
         <div className="brand">
           <span className="brand-mark">✦</span>
-          <span className="brand-name">Community</span>
+          <span className="brand-name">Brotherhood</span>
         </div>
       </header>
 
-      <main className="main-content">
-        {/* Date */}
-        <p className="today-date" style={{ marginBottom: 4 }}>{todayLabel}</p>
-        <p className="section-heading" style={{ marginBottom: 0 }}>Today's Wins</p>
+      <main style={{
+        padding: '24px 24px 80px',
+        display: 'flex', flexDirection: 'column', gap: 40,
+        overflowY: 'auto',
+      }}>
 
-        {/* Post composer */}
-        <form onSubmit={handlePost} className="post-composer">
-          <div className="composer-inner">
-            <div className="composer-avatar">
-              {(user?.email?.split('@')[0] ?? 'A').slice(0, 1).toUpperCase()}
-            </div>
-            <textarea
-              ref={textRef}
-              className="composer-input"
-              value={draft}
-              onChange={handleDraftChange}
-              placeholder="What did you build today?"
-              maxLength={200}
-              rows={2}
-              aria-label="Share what you built today"
-            />
-          </div>
-          <div className="composer-footer">
-            <span className={`composer-count ${draft.length > 180 ? 'composer-count--warn' : ''}`}>
-              {draft.length}/200
+        {/* ── SECTION 1 — HERO ─────────────────────────────────────── */}
+        <section style={{ textAlign: 'center', paddingTop: 16 }}>
+          <img
+            src="/pickupyourcross.png"
+            alt="Pick up your cross"
+            style={{
+              width: 80, height: 80,
+              display: 'block', objectFit: 'contain',
+              margin: '0 auto 24px',
+              animation: 'walkForward 1.2s ease-in-out infinite',
+            }}
+          />
+          <h1 style={{
+            color: '#fff', fontSize: 28, fontWeight: 800,
+            margin: '0 0 16px', lineHeight: 1.2,
+          }}>
+            Iron sharpens iron.
+          </h1>
+          <p style={{
+            color: '#888', fontSize: 15, lineHeight: 1.65,
+            margin: '0 auto',
+            maxWidth: 280,
+          }}>
+            The Brotherhood is coming. A squad of brothers who show up daily,
+            hold each other accountable, and refuse to let each other drift.
+          </p>
+        </section>
+
+        {/* ── SECTION 2 — WHAT'S COMING ────────────────────────────── */}
+        <section>
+          {/* "Coming Soon" divider */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 12,
+            marginBottom: 28,
+          }}>
+            <div style={{ flex: 1, height: 1, background: GOLD, opacity: 0.35 }} />
+            <span style={{
+              color: GOLD, fontSize: 11, fontWeight: 700,
+              letterSpacing: 2, textTransform: 'uppercase',
+              whiteSpace: 'nowrap',
+            }}>
+              Coming Soon
             </span>
-            {charErr && <span className="composer-err">Max 200 characters</span>}
-            <button
-              type="submit"
-              className="btn-primary composer-post-btn"
-              disabled={posting || !draft.trim()}
-            >
-              {posting ? '…' : 'Post'}
-            </button>
+            <div style={{ flex: 1, height: 1, background: GOLD, opacity: 0.35 }} />
           </div>
-        </form>
 
-        {/* Feed */}
-        {loading ? (
-          <div className="feed-skeleton">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="feed-skeleton-card" style={{ animationDelay: `${i * 150}ms` }} />
+          {/* Feature rows */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {FEATURES.map(f => (
+              <div key={f.name} style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+                <span style={{
+                  fontSize: 22, color: GOLD,
+                  flexShrink: 0, width: 28, textAlign: 'center',
+                  marginTop: 1,
+                }}>
+                  {f.icon}
+                </span>
+                <div>
+                  <p style={{ margin: '0 0 4px', color: '#fff', fontSize: 15, fontWeight: 700 }}>
+                    {f.name}
+                  </p>
+                  <p style={{ margin: 0, color: '#666', fontSize: 13, lineHeight: 1.6 }}>
+                    {f.desc}
+                  </p>
+                </div>
+              </div>
             ))}
           </div>
-        ) : posts.length === 0 ? (
-          <div className="feed-empty">
-            <p className="feed-empty-icon">🔥</p>
-            <p className="feed-empty-title">Be the First</p>
-            <p className="feed-empty-body">No one's posted yet. Be the man who goes first.</p>
-          </div>
-        ) : (
-          <div className="feed-list">
-            {posts.map(post => {
-              const reacted = myReactions.has(post.id)
-              const isOwn = post.user_id === user?.id
-              return (
-                <div key={post.id} className={`post-card ${isOwn ? 'post-card--own' : ''}`}>
-                  <div className="post-header">
-                    <div className="post-avatar">
-                      {post.author_name.slice(0, 1).toUpperCase()}
-                    </div>
-                    <div className="post-meta">
-                      <span className="post-author">
-                        {post.author_name}
-                        {isOwn && <span className="post-you"> · you</span>}
-                      </span>
-                      <span className="post-time">{timeAgo(post.created_at)}</span>
-                    </div>
-                  </div>
+        </section>
 
-                  <p className="post-content">{post.content}</p>
+        {/* ── SECTION 3 — EARLY ACCESS ─────────────────────────────── */}
+        <section>
+          <h2 style={{
+            color: '#fff', fontSize: 18, fontWeight: 700,
+            margin: '0 0 8px',
+          }}>
+            Be first.
+          </h2>
+          <p style={{ color: '#666', fontSize: 13, margin: '0 0 20px', lineHeight: 1.6 }}>
+            Enter your email to be notified when squads launch.
+          </p>
 
-                  <div className="post-footer">
-                    <button
-                      className={`react-btn ${reacted ? 'react-btn--active' : ''}`}
-                      onClick={() => toggleReaction(post.id)}
-                      aria-pressed={reacted}
-                      aria-label={reacted ? 'Remove fire reaction' : 'React with fire'}
-                    >
-                      🔥
-                      <span className="react-count">{post.fire_count > 0 ? post.fire_count : ''}</span>
-                    </button>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
+          {status === 'success' ? (
+            <p style={{
+              color: GOLD, fontSize: 15, fontWeight: 600,
+              padding: '16px', background: 'rgba(201,168,76,0.08)',
+              border: `1px solid rgba(201,168,76,0.3)`,
+              borderRadius: 12, textAlign: 'center', margin: 0,
+            }}>
+              You're on the list. The Brotherhood is coming.
+            </p>
+          ) : status === 'duplicate' ? (
+            <p style={{
+              color: '#888', fontSize: 15,
+              padding: '16px', background: '#111',
+              border: '1px solid #2a2a2a',
+              borderRadius: 12, textAlign: 'center', margin: 0,
+            }}>
+              You're already on the list. We'll see you there.
+            </p>
+          ) : (
+            <form onSubmit={handleWaitlist} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="your@email.com"
+                style={{
+                  width: '100%', boxSizing: 'border-box',
+                  background: '#1a1a1a', color: '#fff',
+                  border: `1.5px solid ${GOLD}`,
+                  borderRadius: 12, padding: '16px',
+                  fontSize: 15, outline: 'none',
+                  fontFamily: 'inherit',
+                }}
+              />
+              {status === 'error' && (
+                <p style={{ color: '#e06c6c', fontSize: 13, margin: 0 }}>
+                  Something went wrong. Try again.
+                </p>
+              )}
+              <button
+                type="submit"
+                disabled={saving}
+                style={{
+                  width: '100%', background: GOLD, border: 'none',
+                  borderRadius: 12, padding: '16px',
+                  color: '#000', fontSize: 15, fontWeight: 700,
+                  cursor: saving ? 'not-allowed' : 'pointer',
+                  opacity: saving ? 0.7 : 1,
+                  letterSpacing: 0.3,
+                }}
+              >
+                {saving ? 'Saving…' : 'Notify Me When It\'s Ready'}
+              </button>
+            </form>
+          )}
+        </section>
+
+        {/* ── SECTION 4 — SCRIPTURE FOOTER ─────────────────────────── */}
+        <section style={{ textAlign: 'center', paddingBottom: 8 }}>
+          <p style={{
+            color: '#444', fontSize: 12, fontStyle: 'italic',
+            lineHeight: 1.7, margin: 0,
+          }}>
+            "As iron sharpens iron, so one person sharpens another."
+            <br />
+            — Proverbs 27:17
+          </p>
+        </section>
+
       </main>
     </div>
   )
