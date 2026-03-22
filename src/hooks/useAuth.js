@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 
 // ── Canonical app URL ────────────────────────────────────────────────────
@@ -50,7 +50,8 @@ export function useAuth() {
   }
 
   // ── Session bootstrap ───────────────────────────────────────────────
-  const profileFetchedOnce = { current: false }
+  // useRef so mutations persist across renders and are visible inside closures.
+  const profileFetchedOnce = useRef(false)
   useEffect(() => {
     // If localStorage already has onboarding done, set profile optimistically
     // so the app never flashes onboarding for returning users
@@ -105,8 +106,12 @@ export function useAuth() {
       supabase.auth.getSession().then(({ data: { session } }) => {
         const u = session?.user ?? null
         setUser(u)
-        fetchProfile(u?.id)
-        profileFetchedOnce.current = true
+        // Guard: onAuthStateChange(SIGNED_IN) may have already fired and called
+        // fetchProfile. Only call it here if that hasn't happened yet.
+        if (!profileFetchedOnce.current) {
+          profileFetchedOnce.current = true
+          fetchProfile(u?.id)
+        }
         setLoading(false)
       })
     }

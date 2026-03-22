@@ -91,6 +91,13 @@ export default function App() {
   // profileFetched must be true before any routing decision — otherwise a user
   // with onboarding_done=true in the DB will briefly see onboarding while the
   // profile is still loading (profile=null → onboarding_done=undefined → show onboarding).
+  console.log('[FaithBuilt] splash check:', {
+    splashReady,
+    loading,
+    profileLoading,
+    profileFetched,
+    onboardingDone: localStorage.getItem('fb_onboarding_done') === '1' || profile?.onboarding_done === true,
+  })
   if (!splashReady || loading || profileLoading || !profileFetched) {
     return <SplashScreen />
   }
