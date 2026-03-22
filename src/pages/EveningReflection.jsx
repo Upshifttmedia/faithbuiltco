@@ -13,10 +13,11 @@
  *   ALTER TABLE daily_commits ADD COLUMN IF NOT EXISTS carry_forward text;
  */
 import { useState, useEffect } from 'react'
-import { useDailyCommit } from '../hooks/useDailyCommit'
-import { useStreak }      from '../hooks/useStreak'
-import { useAuth }        from '../hooks/useAuth'
-import Toast              from '../components/Toast'
+import { useDailyCommit }  from '../hooks/useDailyCommit'
+import { useStreak }       from '../hooks/useStreak'
+import { useAuth }         from '../hooks/useAuth'
+import Toast               from '../components/Toast'
+import { PillarIcon }      from '../components/PillarIcon'
 
 const PILLARS = [
   { key: 'faith',       icon: '✦', label: 'Faith' },
@@ -76,22 +77,22 @@ const MILESTONE_COPY = {
 // brightness(10) makes the dark PNG appear white-gold on a dark background.
 const crossWalking = {
   width: 80, height: 80, display: 'block', objectFit: 'contain',
-  marginBottom: 24,
+  marginBottom: 24, mixBlendMode: 'screen',
   animation: 'walkForward 1.2s ease-in-out infinite',
 }
 const crossPulse = {
   width: 80, height: 80, display: 'block', objectFit: 'contain',
-  marginBottom: 24,
+  marginBottom: 24, mixBlendMode: 'screen',
   animation: 'standingPulse 2s ease-in-out infinite',
 }
 const crossHeavy = {
   width: 80, height: 80, display: 'block', objectFit: 'contain',
-  marginBottom: 24,
+  marginBottom: 24, mixBlendMode: 'screen',
   animation: 'heavyBow 3s ease-in-out infinite',
 }
 const crossMilestone = {
   width: 60, height: 60, display: 'block', objectFit: 'contain',
-  marginBottom: 24,
+  marginBottom: 24, mixBlendMode: 'screen',
   animation: 'walkForward 1.2s ease-in-out infinite',
 }
 
@@ -474,7 +475,9 @@ export default function EveningReflection({ navigate, userId }) {
           <div style={{ ...sCenter, paddingTop: 8, paddingBottom: 100 }}>
 
             {/* Pillar icon + name */}
-            <div style={{ fontSize: 44, color: GOLD, marginBottom: 10 }}>{pillar.icon}</div>
+            <div style={{ marginBottom: 10 }}>
+              <PillarIcon pillar={pillar.key} size={44} color={GOLD} />
+            </div>
             <h2 style={{ color: GOLD, fontSize: 36, fontWeight: 900, margin: '0 0 28px', letterSpacing: 1 }}>
               {pillar.label}
             </h2>

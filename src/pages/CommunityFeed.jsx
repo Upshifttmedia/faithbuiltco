@@ -117,6 +117,7 @@ export default function CommunityFeed() {
               width: 80, height: 80,
               display: 'block', objectFit: 'contain',
               margin: '0 auto 24px',
+              mixBlendMode: 'screen',
               animation: 'walkForward 1.2s ease-in-out infinite',
             }}
           />

@@ -6,6 +6,7 @@ import { getLocalDate }   from '../lib/dateUtils'
 import ArmorShield        from '../components/Dashboard/ArmorShield'
 import { supabase }       from '../lib/supabase'
 import Toast              from '../components/Toast'
+import { PillarIcon }     from '../components/PillarIcon'
 
 const PILLARS = [
   { key: 'faith',       icon: '✦', label: 'Faith',       desc: 'Scripture and prayer' },
@@ -65,7 +66,7 @@ function ShieldWithStats({ commit, streak }) {
               src="/pickupyourcross.png"
               width={32} height={32}
               alt=""
-              style={{ display: 'block', objectFit: 'contain' }}
+              style={{ display: 'block', objectFit: 'contain', mixBlendMode: 'screen' }}
             />
           </div>
           <span style={{ fontSize: 11, color: '#666', letterSpacing: 0.5, marginTop: 5 }}>
@@ -210,7 +211,7 @@ function EditCommitmentModal({ pillar, initialText, onSave, onCancel }) {
       }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-          <span style={{ fontSize: 20 }}>{pillar.icon}</span>
+          <PillarIcon pillar={pillar.key} size={20} color="#C9A84C" />
           <p style={{
             margin: 0, fontSize: 14, fontWeight: 700,
             color: '#C9A84C', textTransform: 'uppercase', letterSpacing: 1,
@@ -295,7 +296,7 @@ function PillarCheckCard({ pillar, commitment, confirmed, animating, onConfirm, 
     }}>
       <div style={{ flex: 1 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-          <span style={{ fontSize: 16 }}>{pillar.icon}</span>
+          <PillarIcon pillar={pillar.key} size={16} color="#C9A84C" />
           <p style={{
             margin: 0, fontSize: 12, fontWeight: 700,
             color: '#C9A84C', textTransform: 'uppercase', letterSpacing: 1,
@@ -355,7 +356,9 @@ function PillarPreviewCard({ pillar, text }) {
       marginBottom: 8,
       opacity: 0.6,
     }}>
-      <span style={{ fontSize: 20, minWidth: 24 }}>{pillar.icon}</span>
+      <span style={{ minWidth: 24, display: 'flex', alignItems: 'center' }}>
+        <PillarIcon pillar={pillar.key} size={20} color="#555" />
+      </span>
       <div>
         <p style={{ margin: '0 0 3px', fontSize: 11, color: '#666', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1 }}>
           {pillar.label}

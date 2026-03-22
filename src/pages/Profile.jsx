@@ -5,7 +5,8 @@ import { useHistory } from '../hooks/useHistory'
 import { useDailyCommit } from '../hooks/useDailyCommit'
 import { supabase } from '../lib/supabase'
 import { subscribeToPush, unsubscribeFromPush } from '../hooks/usePushNotifications'
-import Toast from '../components/Toast'
+import Toast          from '../components/Toast'
+import { PillarIcon } from '../components/PillarIcon'
 
 const GOLD = '#C9A84C'
 
@@ -278,7 +279,7 @@ export default function Profile({ navigate }) {
               const todayText = commit?.[`${p.key}_commitment`]
               return (
                 <div key={p.name} className="profile-pillar-row">
-                  <span className="profile-pillar-icon">{p.icon}</span>
+                  <span className="profile-pillar-icon"><PillarIcon pillar={p.key} size={18} color="#C9A84C" /></span>
                   <div>
                     <p className="profile-pillar-name">{p.name}</p>
                     <p

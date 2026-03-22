@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useDailyCommit } from '../hooks/useDailyCommit'
-import Toast from '../components/Toast'
+import Toast               from '../components/Toast'
+import { PillarIcon }      from '../components/PillarIcon'
 
 // ── Rotating hint texts (7 per pillar, indexed by day of week 0-6) ──
 const HINTS = {
@@ -156,7 +157,7 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
               if (!val) return null
               return (
                 <div key={p.key} className="mc-review-row">
-                  <span className="mc-review-icon">{p.icon}</span>
+                  <span className="mc-review-icon"><PillarIcon pillar={p.key} size={20} color="#C9A84C" /></span>
                   <div>
                     <p className="mc-review-label">{p.label}</p>
                     <p className="mc-review-text">{val}</p>
@@ -197,7 +198,7 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
           {PILLARS.map(p => (
             <div key={p.key} className="mc-field">
               <div className="mc-field-header">
-                <span className="mc-field-icon">{p.icon}</span>
+                <span className="mc-field-icon"><PillarIcon pillar={p.key} size={20} color="#C9A84C" /></span>
                 <span className="mc-field-label">{p.label}</span>
               </div>
               <textarea

@@ -1,9 +1,45 @@
 /**
  * ArmorShield — SVG shield split into 4 quadrants, one per pillar.
- * Empty quadrant: dark fill #1a1a1a, muted icon #444.
+ * Empty quadrant: dark fill #1a1a1a, muted icon #3a3a3a.
  * Filled quadrant: gold gradient, bright gold icon #FFD700.
  * When all 4 are confirmed the shield border pulses gold.
+ *
+ * Icons are rendered as nested SVGs (viewBox 0 0 24 24) positioned at
+ * each quadrant centre — avoids emoji rendering variance across platforms.
  */
+
+// ── Per-pillar SVG icon paths (24×24 coordinate space) ───────────────
+function PillarPaths({ pillarKey, color }) {
+  const sw = 1.8
+  if (pillarKey === 'faith') return (
+    <>
+      <rect x="11" y="2" width="2" height="20" fill={color} />
+      <rect x="4"  y="8" width="16" height="2"  fill={color} />
+    </>
+  )
+  if (pillarKey === 'body') return (
+    <g fill="none" stroke={color} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="4" r="2" fill={color} stroke="none" />
+      <path d="M8 7l4 4 4-4M12 11v5M9 16l-2 4M15 16l2 4" />
+    </g>
+  )
+  if (pillarKey === 'mind') return (
+    <>
+      <path
+        d="M12 6.5C10 4.5 6 4 3 5v13c3-1 7-.5 9 1.5 2-2 6-2.5 9-1.5V5c-3-1-7-.5-9 1.5z"
+        fill={color}
+      />
+      <line x1="12" y1="6.5" x2="12" y2="21" stroke="rgba(0,0,0,0.3)" strokeWidth="1.5" />
+    </>
+  )
+  if (pillarKey === 'stewardship') return (
+    <g fill="none" stroke={color} strokeWidth={sw} strokeLinecap="round">
+      <path d="M20 12H4M4 12l4-4M4 12l4 4" />
+      <path d="M12 4v4M12 16v4" />
+    </g>
+  )
+  return null
+}
 export default function ArmorShield({
   faithConfirmed       = false,
   bodyConfirmed        = false,
@@ -87,20 +123,24 @@ export default function ArmorShield({
           <line x1="15" y1="120" x2="185" y2="120" stroke="#0d0d0d" strokeWidth="2.5" />
         </g>
 
-        {/* Pillar icons */}
-        {quadrants.map(q => (
-          <text
-            key={q.key + '-icon'}
-            x={q.cx} y={q.cy}
-            textAnchor="middle"
-            dominantBaseline="central"
-            fontSize="26"
-            fill={confirmed[q.key] ? '#FFD700' : '#3a3a3a'}
-            style={{ transition: 'fill 0.35s ease', userSelect: 'none' }}
-          >
-            {q.icon}
-          </text>
-        ))}
+        {/* Pillar icons — nested 24×24 SVGs centred on each quadrant */}
+        {quadrants.map(q => {
+          const color = confirmed[q.key] ? '#FFD700' : '#3a3a3a'
+          const sz = 28
+          return (
+            <svg
+              key={q.key + '-icon'}
+              x={q.cx - sz / 2}
+              y={q.cy - sz / 2}
+              width={sz}
+              height={sz}
+              viewBox="0 0 24 24"
+              overflow="visible"
+            >
+              <PillarPaths pillarKey={q.key} color={color} />
+            </svg>
+          )
+        })}
 
         {/* Shield border — thickens and turns gold when all four confirmed */}
         <path
