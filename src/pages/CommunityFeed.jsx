@@ -122,7 +122,8 @@ export default function CommunityFeed() {
             }}
           />
           <h1 style={{
-            color: '#fff', fontSize: 28, fontWeight: 800,
+            fontFamily: "'Barlow Condensed', sans-serif",
+            color: '#fff', fontSize: 32, fontWeight: 800,
             margin: '0 0 16px', lineHeight: 1.2,
           }}>
             Iron sharpens iron.
@@ -146,6 +147,7 @@ export default function CommunityFeed() {
           }}>
             <div style={{ flex: 1, height: 1, background: GOLD, opacity: 0.35 }} />
             <span style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
               color: GOLD, fontSize: 11, fontWeight: 700,
               letterSpacing: 2, textTransform: 'uppercase',
               whiteSpace: 'nowrap',

@@ -316,7 +316,8 @@ export default function EveningReflection({ navigate, userId }) {
             style={crossWalking}
           />
           <span style={{
-            fontSize: 96, fontWeight: 900, color: GOLD,
+            fontFamily: "'Barlow Condensed', sans-serif",
+            fontSize: 72, fontWeight: 800, color: GOLD,
             lineHeight: 1, display: 'block', marginBottom: 8,
             transition: 'transform 0.45s cubic-bezier(0.34,1.56,0.64,1), opacity 0.45s ease',
             transform: dispStreak >= celebData.newStreak ? 'scale(1)' : 'scale(0.6)',
@@ -325,7 +326,7 @@ export default function EveningReflection({ navigate, userId }) {
           }}>
             {dispStreak}
           </span>
-          <p style={{ color: '#fff', fontSize: 22, fontWeight: 700, margin: '0 0 10px' }}>
+          <p style={{ color: '#fff', fontSize: 36, fontWeight: 800, margin: '0 0 10px', fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: '0.5px' }}>
             Day {celebData.newStreak}. Locked in.
           </p>
           <p style={{ color: '#888', fontSize: 16, margin: '0 0 4px' }}>You kept your word, {displayName}.</p>
@@ -453,7 +454,7 @@ export default function EveningReflection({ navigate, userId }) {
         {/* ═══════════════════════════════════════ */}
         {step === 0 && (
           <div style={{ ...sCenter, paddingBottom: 120 }}>
-            <h1 style={{ color: '#fff', fontSize: 28, fontWeight: 800, margin: '0 0 16px', lineHeight: 1.35 }}>
+            <h1 style={{ color: '#fff', fontSize: 28, fontWeight: 800, margin: '0 0 16px', lineHeight: 1.35, fontFamily: "'Barlow Condensed', sans-serif" }}>
               The day is almost done.
             </h1>
             <p style={{ color: '#666', fontSize: 16, margin: '0 0 14px', lineHeight: 1.65 }}>
@@ -478,7 +479,7 @@ export default function EveningReflection({ navigate, userId }) {
             <div style={{ marginBottom: 10 }}>
               <PillarIcon pillar={pillar.key} size={44} color={GOLD} />
             </div>
-            <h2 style={{ color: GOLD, fontSize: 36, fontWeight: 900, margin: '0 0 28px', letterSpacing: 1 }}>
+            <h2 style={{ color: GOLD, fontSize: 36, fontWeight: 700, margin: '0 0 28px', letterSpacing: '1px', fontFamily: "'Barlow Condensed', sans-serif" }}>
               {pillar.label}
             </h2>
 

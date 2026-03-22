@@ -509,9 +509,14 @@ export default function Dashboard({ navigate, userId }) {
         {phase === 'morning' && (
           <>
             {/* Greeting */}
-            <h2 style={{ margin: '0 0 8px', paddingLeft: 16, color: '#fff', fontSize: 26, fontWeight: 600, animation: 'db-fade 0.4s ease' }}>
-              {getGreeting()} {displayName}.
-            </h2>
+            <div style={{ margin: '0 0 8px', paddingLeft: 16, animation: 'db-fade 0.4s ease' }}>
+              <p style={{ margin: 0, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 400, fontSize: 14, letterSpacing: '3px', textTransform: 'uppercase', color: '#fff', lineHeight: 1.2 }}>
+                {getGreeting()}
+              </p>
+              <p style={{ margin: 0, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 48, letterSpacing: '1px', color: '#fff', lineHeight: 1.05 }}>
+                {displayName}.
+              </p>
+            </div>
 
             {/* Primary CTA */}
             <button
@@ -554,7 +559,7 @@ export default function Dashboard({ navigate, userId }) {
               marginBottom: 20,
               animation: 'db-fade 0.4s ease',
             }}>
-              <p style={{ margin: '0 0 4px', color: '#C9A84C', fontSize: 17, fontWeight: 800 }}>
+              <p style={{ margin: '0 0 4px', color: '#C9A84C', fontSize: 22, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: '0.5px' }}>
                 Committed. Now go do it.
               </p>
               <p style={{ margin: 0, color: '#777', fontSize: 14 }}>
@@ -563,9 +568,14 @@ export default function Dashboard({ navigate, userId }) {
             </div>
 
             {/* Greeting above shield */}
-            <h2 style={{ margin: '0 0 8px', paddingLeft: 16, color: '#fff', fontSize: 26, fontWeight: 600 }}>
-              {getGreeting()} {displayName}.
-            </h2>
+            <div style={{ margin: '0 0 8px', paddingLeft: 16 }}>
+              <p style={{ margin: 0, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 400, fontSize: 14, letterSpacing: '3px', textTransform: 'uppercase', color: '#fff', lineHeight: 1.2 }}>
+                {getGreeting()}
+              </p>
+              <p style={{ margin: 0, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 48, letterSpacing: '1px', color: '#fff', lineHeight: 1.05 }}>
+                {displayName}.
+              </p>
+            </div>
 
             {/* Shield + streak stats */}
             <ShieldWithStats commit={commit} streak={streak} />

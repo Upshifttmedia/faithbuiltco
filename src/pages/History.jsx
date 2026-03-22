@@ -314,8 +314,9 @@ export default function History() {
         {/* ── Header ── */}
         <div style={{ marginBottom: 24 }}>
           <p style={{
+            fontFamily: "'Barlow Condensed', sans-serif",
             margin: '0 0 4px',
-            color: '#fff', fontSize: 22, fontWeight: 800, letterSpacing: 0.5,
+            color: '#fff', fontSize: 28, fontWeight: 800, letterSpacing: '1px',
           }}>
             YOUR JOURNEY
           </p>
