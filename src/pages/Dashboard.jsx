@@ -510,10 +510,10 @@ export default function Dashboard({ navigate, userId }) {
           <>
             {/* Greeting */}
             <div style={{ margin: '0 0 8px', paddingLeft: 16, animation: 'db-fade 0.4s ease' }}>
-              <p style={{ margin: '0 0 4px', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 400, fontSize: 13, letterSpacing: '3px', textTransform: 'uppercase', color: '#888', lineHeight: 1 }}>
+              <p style={{ margin: '0 0 4px', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 400, fontSize: 12, letterSpacing: '4px', textTransform: 'uppercase', color: '#888', lineHeight: 1 }}>
                 {getGreeting()}
               </p>
-              <p style={{ margin: 0, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 36, letterSpacing: '1px', color: '#fff', lineHeight: 1.05 }}>
+              <p style={{ margin: 0, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 40, letterSpacing: '2px', color: '#fff', lineHeight: 1.05, textTransform: 'uppercase' }}>
                 {displayName}.
               </p>
             </div>
@@ -559,20 +559,20 @@ export default function Dashboard({ navigate, userId }) {
               marginBottom: 20,
               animation: 'db-fade 0.4s ease',
             }}>
-              <p style={{ margin: '0 0 4px', color: '#C9A84C', fontSize: 22, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: '0.5px' }}>
+              <p style={{ margin: '0 0 4px', color: '#C9A84C', fontSize: 22, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: '1px', textTransform: 'uppercase' }}>
                 Committed. Now go do it.
               </p>
-              <p style={{ margin: 0, color: '#777', fontSize: 14 }}>
+              <p style={{ margin: 0, color: '#777', fontSize: 13, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 400, letterSpacing: '1px', textTransform: 'uppercase' }}>
                 Check off each pillar as you complete it.
               </p>
             </div>
 
             {/* Greeting above shield */}
             <div style={{ margin: '0 0 8px', paddingLeft: 16 }}>
-              <p style={{ margin: '0 0 4px', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 400, fontSize: 13, letterSpacing: '3px', textTransform: 'uppercase', color: '#888', lineHeight: 1 }}>
+              <p style={{ margin: '0 0 4px', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 400, fontSize: 12, letterSpacing: '4px', textTransform: 'uppercase', color: '#888', lineHeight: 1 }}>
                 {getGreeting()}
               </p>
-              <p style={{ margin: 0, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 36, letterSpacing: '1px', color: '#fff', lineHeight: 1.05 }}>
+              <p style={{ margin: 0, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 40, letterSpacing: '2px', color: '#fff', lineHeight: 1.05, textTransform: 'uppercase' }}>
                 {displayName}.
               </p>
             </div>
@@ -643,10 +643,10 @@ export default function Dashboard({ navigate, userId }) {
               animation: 'db-fade 0.4s ease',
             }}>
               <div>
-                <p style={{ margin: '0 0 4px', color: '#C9A84C', fontSize: 17, fontWeight: 800 }}>
+                <p style={{ margin: '0 0 4px', color: '#C9A84C', fontSize: 20, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: '1px', textTransform: 'uppercase' }}>
                   Today you showed up. ✓
                 </p>
-                <p style={{ margin: 0, color: '#666', fontSize: 14 }}>
+                <p style={{ margin: 0, color: '#666', fontSize: 13, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 400, letterSpacing: '1px', textTransform: 'uppercase' }}>
                   {confirmedCount === 4
                     ? 'All pillars aligned.'
                     : `${confirmedCount}/4 pillars confirmed.`}
