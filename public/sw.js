@@ -1,5 +1,5 @@
 // FaithBuilt Service Worker
-const VERSION = 'v2'
+const VERSION = 'v3'
 
 self.addEventListener('install', () => {
   self.skipWaiting()
