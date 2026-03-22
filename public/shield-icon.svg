@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+
+    <!-- Gold gradient — userSpaceOnUse so it renders correctly across clipped rects -->
+    <linearGradient id="gold-grad" x1="0" y1="58" x2="0" y2="455" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#D4AF5A"/>
+      <stop offset="100%" stop-color="#7a5218"/>
+    </linearGradient>
+
+    <!-- Shield outline clips all quadrant fills to the shield shape -->
+    <!-- Shield path scaled 1.8× and offset to centre in 512×512:
+         translate(76, 44) scale(1.8)
+         Original: M100,8 L185,38 L185,148 C185,196 100,228 100,228 C100,228 15,196 15,148 L15,38 Z -->
+    <clipPath id="shield-clip">
+      <path d="M 256,58.4
+               L 409,112.4
+               L 409,310.4
+               C 409,396.8 256,454.4 256,454.4
+               C 256,454.4 103,396.8 103,310.4
+               L 103,112.4 Z"/>
+    </clipPath>
+
+    <!-- Outer glow on shield border -->
+    <filter id="shield-glow" x="-15%" y="-10%" width="130%" height="120%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+  </defs>
+
+  <!-- ── App background (rounded square matching iOS/Android icon shape) -->
+  <rect width="512" height="512" rx="114" ry="114" fill="#0a0a0a"/>
+
+  <!-- ── Shield background (very dark, behind the quadrants) -->
+  <path
+    d="M 256,58.4
+       L 409,112.4
+       L 409,310.4
+       C 409,396.8 256,454.4 256,454.4
+       C 256,454.4 103,396.8 103,310.4
+       L 103,112.4 Z"
+    fill="#0d0d0d"
+  />
+
+  <!-- ── Gold quadrant fills (all four filled = fully armed) -->
+  <!-- Top-left  (Faith) -->
+  <rect x="0"   y="0"   width="256" height="260" fill="url(#gold-grad)" clip-path="url(#shield-clip)"/>
+  <!-- Top-right (Body) -->
+  <rect x="256" y="0"   width="256" height="260" fill="url(#gold-grad)" clip-path="url(#shield-clip)"/>
+  <!-- Bottom-left  (Mind) -->
+  <rect x="0"   y="260" width="256" height="260" fill="url(#gold-grad)" clip-path="url(#shield-clip)"/>
+  <!-- Bottom-right (Stewardship) -->
+  <rect x="256" y="260" width="256" height="260" fill="url(#gold-grad)" clip-path="url(#shield-clip)"/>
+
+  <!-- ── Quadrant dividers (dark gold lines inside shield) -->
+  <g clip-path="url(#shield-clip)" stroke="#7a5c1e" stroke-width="3">
+    <!-- Vertical centre line: x=256, y=58→455 -->
+    <line x1="256" y1="58"  x2="256" y2="455"/>
+    <!-- Horizontal centre line: y=260, x=103→409 -->
+    <line x1="103" y1="260" x2="409" y2="260"/>
+  </g>
+
+  <!-- ── Pillar icons in bright gold (#FFD700) ─────────────────────── -->
+
+  <!-- FAITH — simple cross (top-left quadrant, centre ≈ 180, 163) -->
+  <g fill="#FFD700">
+    <!-- Vertical bar -->
+    <rect x="178" y="150" width="4"  height="26"/>
+    <!-- Horizontal bar -->
+    <rect x="169" y="160" width="22" height="4"/>
+  </g>
+
+  <!-- BODY — lightning bolt (top-right quadrant, centre ≈ 332, 163) -->
+  <path
+    d="M 338,150  L 328,166  L 334,166  L 327,177  L 339,160  L 333,160 Z"
+    fill="#FFD700"
+  />
+
+  <!-- MIND — open book (bottom-left quadrant, centre ≈ 180, 354) -->
+  <!-- Left page + right page + centre spine -->
+  <path
+    d="M 180,344
+       C 176,341 165,341 158,343
+       L 158,365
+       C 165,363 176,363 180,366
+       C 184,363 195,363 202,365
+       L 202,343
+       C 195,341 184,341 180,344 Z"
+    fill="#FFD700"
+  />
+  <line x1="180" y1="344" x2="180" y2="366" stroke="#8B6914" stroke-width="2"/>
+
+  <!-- STEWARDSHIP — diamond (bottom-right quadrant, centre ≈ 332, 354) -->
+  <path
+    d="M 332,341  L 346,354  L 332,367  L 318,354 Z"
+    fill="#FFD700"
+  />
+
+  <!-- ── Shield border with gold glow ──────────────────────────────── -->
+  <path
+    d="M 256,58.4
+       L 409,112.4
+       L 409,310.4
+       C 409,396.8 256,454.4 256,454.4
+       C 256,454.4 103,396.8 103,310.4
+       L 103,112.4 Z"
+    fill="none"
+    stroke="#C9A84C"
+    stroke-width="4"
+    filter="url(#shield-glow)"
+  />
+
+</svg>
