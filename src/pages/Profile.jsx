@@ -305,6 +305,55 @@ export default function Profile({ navigate }) {
         <button className="btn-signout" onClick={handleSignOut}>
           Sign Out
         </button>
+
+        {/* About FaithBuilt */}
+        <div style={{ marginTop: 40, paddingBottom: 32 }}>
+          {/* Divider */}
+          <div style={{
+            height: 1,
+            background: '#C9A84C',
+            opacity: 0.25,
+            marginBottom: 24,
+          }} />
+
+          {/* Label */}
+          <p style={{
+            color: '#C9A84C',
+            fontSize: 11,
+            fontVariant: 'small-caps',
+            textTransform: 'uppercase',
+            letterSpacing: 2,
+            textAlign: 'center',
+            margin: '0 0 16px',
+          }}>
+            About FaithBuilt
+          </p>
+
+          {/* Mission text */}
+          <p style={{
+            fontFamily: "'Georgia', 'Times New Roman', serif",
+            color: '#666',
+            fontSize: 13,
+            fontStyle: 'italic',
+            lineHeight: 1.8,
+            textAlign: 'center',
+            maxWidth: 280,
+            margin: '0 auto 12px',
+          }}>
+            FaithBuilt exists for one reason. Most men don't collapse in their faith.
+            They drift. This is the system that ends the drift.
+          </p>
+
+          {/* Tagline */}
+          <p style={{
+            color: '#555',
+            fontSize: 11,
+            textAlign: 'center',
+            letterSpacing: 1,
+          }}>
+            Faith. Discipline. Daily.
+          </p>
+        </div>
       </main>
     </div>
   )

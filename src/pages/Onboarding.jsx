@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 
 const DEFAULT_IDENTITY = 'I am a man of faith, discipline, and character.'
-const TOTAL_STEPS = 8
+const TOTAL_STEPS = 8 // slide steps 1–8; step 0 is the mission screen (no dots)
 
 const COMMITMENT_OPTIONS = [
   { days: 3, label: 'Getting started',   sub: '3 days / week' },
@@ -41,19 +41,113 @@ export default function Onboarding({ userId, onComplete }) {
     }
   }
 
+  // Dots are offset by 1 because step 0 is the pre-slide mission screen.
+  // Steps 1–8 map to dot indices 0–7.
   const dots = (
     <div className="onboard-dots">
       {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
         <span
           key={i}
-          className={`onboard-dot${i === step ? ' onboard-dot--active' : ''}`}
+          className={`onboard-dot${i === step - 1 ? ' onboard-dot--active' : ''}`}
         />
       ))}
     </div>
   )
 
-  // ── Screen 0 — The Mirror ──────────────────────────────────────────────
+  // ── Screen 0 — Mission Statement ───────────────────────────────────────
   if (step === 0) return (
+    <div style={{
+      minHeight: '100dvh',
+      background: '#0a0a0a',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '48px 32px',
+      textAlign: 'center',
+    }}>
+      {/* Cross */}
+      <img
+        src="/pickupyourcross.png"
+        alt=""
+        style={{ width: 60, height: 60, mixBlendMode: 'screen', marginBottom: 32 }}
+      />
+
+      {/* FAITHBUILT label */}
+      <div style={{
+        fontFamily: "'Georgia', 'Times New Roman', serif",
+        color: '#C9A84C',
+        fontSize: 13,
+        fontVariant: 'small-caps',
+        letterSpacing: 3,
+        textTransform: 'uppercase',
+      }}>
+        FaithBuilt
+      </div>
+
+      {/* Headline */}
+      <p style={{
+        fontFamily: "'Georgia', 'Times New Roman', serif",
+        color: '#fff',
+        fontSize: 28,
+        fontWeight: 700,
+        lineHeight: 1.3,
+        marginTop: 16,
+        marginBottom: 0,
+      }}>
+        Most men don't collapse in their faith.<br />They drift.
+      </p>
+
+      {/* Body */}
+      <p style={{
+        fontFamily: "'Georgia', 'Times New Roman', serif",
+        color: '#888',
+        fontSize: 15,
+        lineHeight: 1.8,
+        marginTop: 24,
+        maxWidth: 300,
+        fontStyle: 'italic',
+      }}>
+        Small compromises. Skipped mornings. Good intentions that never become discipline.
+      </p>
+
+      {/* System line */}
+      <p style={{
+        fontFamily: "'Georgia', 'Times New Roman', serif",
+        color: '#fff',
+        fontSize: 17,
+        fontWeight: 600,
+        marginTop: 24,
+      }}>
+        FaithBuilt is the system that ends the drift.
+      </p>
+
+      {/* Tagline */}
+      <p style={{
+        color: '#888',
+        fontSize: 13,
+        marginTop: 32,
+        letterSpacing: 1,
+        lineHeight: 1.8,
+      }}>
+        Not motivation. Not content.<br />
+        A daily structure that holds you accountable<br />
+        to becoming who God built you to be.
+      </p>
+
+      {/* CTA */}
+      <button
+        className="btn-primary onboard-btn"
+        onClick={next}
+        style={{ marginTop: 'auto', paddingTop: 48 }}
+      >
+        I'm ready to build. →
+      </button>
+    </div>
+  )
+
+  // ── Screen 1 — The Mirror ──────────────────────────────────────────────
+  if (step === 1) return (
     <div className="onboarding-screen">
       {dots}
       <div className="onboard-slide">
@@ -68,11 +162,12 @@ export default function Onboarding({ userId, onComplete }) {
       <button className="btn-primary onboard-btn" onClick={next}>
         That's me →
       </button>
+      <button className="link-btn onboard-back" onClick={back}>← Back</button>
     </div>
   )
 
-  // ── Screen 1 — The Four Pillars ────────────────────────────────────────
-  if (step === 1) return (
+  // ── Screen 2 — The Four Pillars ────────────────────────────────────────
+  if (step === 2) return (
     <div className="onboarding-screen">
       {dots}
       <div className="onboard-slide">
@@ -88,8 +183,8 @@ export default function Onboarding({ userId, onComplete }) {
     </div>
   )
 
-  // ── Screen 2 — The Streak ──────────────────────────────────────────────
-  if (step === 2) return (
+  // ── Screen 3 — The Streak ──────────────────────────────────────────────
+  if (step === 3) return (
     <div className="onboarding-screen">
       {dots}
       <div className="onboard-slide">
@@ -106,8 +201,8 @@ export default function Onboarding({ userId, onComplete }) {
     </div>
   )
 
-  // ── Screen 3 — The Brotherhood ─────────────────────────────────────────
-  if (step === 3) return (
+  // ── Screen 4 — The Brotherhood ─────────────────────────────────────────
+  if (step === 4) return (
     <div className="onboarding-screen">
       {dots}
       <div className="onboard-slide">
@@ -124,8 +219,8 @@ export default function Onboarding({ userId, onComplete }) {
     </div>
   )
 
-  // ── Screen 4 — Name ────────────────────────────────────────────────────
-  if (step === 4) return (
+  // ── Screen 5 — Name ────────────────────────────────────────────────────
+  if (step === 5) return (
     <div className="onboarding-screen">
       {dots}
       <div className="onboarding-commit">
@@ -157,8 +252,8 @@ export default function Onboarding({ userId, onComplete }) {
     </div>
   )
 
-  // ── Screen 5 — The Identity Statement ─────────────────────────────────
-  if (step === 5) return (
+  // ── Screen 6 — The Identity Statement ─────────────────────────────────
+  if (step === 6) return (
     <div className="onboarding-screen">
       {dots}
       <div className="onboarding-commit">
@@ -185,8 +280,8 @@ export default function Onboarding({ userId, onComplete }) {
     </div>
   )
 
-  // ── Screen 6 — The Commitment ──────────────────────────────────────────
-  if (step === 6) return (
+  // ── Screen 7 — The Commitment ──────────────────────────────────────────
+  if (step === 7) return (
     <div className="onboarding-screen">
       {dots}
       <div className="onboarding-commit">
@@ -213,7 +308,7 @@ export default function Onboarding({ userId, onComplete }) {
     </div>
   )
 
-  // ── Screen 7 — The Send Off ────────────────────────────────────────────
+  // ── Screen 8 — The Send Off ────────────────────────────────────────────
   return (
     <div className="onboarding-screen">
       {dots}
