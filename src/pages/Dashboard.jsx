@@ -34,6 +34,13 @@ const ANIMATIONS = `
   @keyframes db-flash { 0% { background:rgba(201,168,76,0) } 40% { background:rgba(201,168,76,0.25) } 100% { background:rgba(201,168,76,0) } }
   @keyframes db-pop   { 0% { transform:scale(1) } 35% { transform:scale(1.18) } 70% { transform:scale(0.95) } 100% { transform:scale(1) } }
   @keyframes db-glow  { 0%,100% { box-shadow:0 0 0 0 rgba(201,168,76,0.3) } 50% { box-shadow:0 0 16px 4px rgba(201,168,76,0.5) } }
+  @keyframes walkForward {
+    0%   { transform:translateX(0px) translateY(0px) rotate(0deg); filter:brightness(10) drop-shadow(0 0 4px #C9A84C); }
+    25%  { transform:translateX(3px) translateY(-2px) rotate(2deg); filter:brightness(10) drop-shadow(0 0 12px #C9A84C); }
+    50%  { transform:translateX(6px) translateY(0px) rotate(0deg); filter:brightness(10) drop-shadow(0 0 4px #C9A84C); }
+    75%  { transform:translateX(3px) translateY(-2px) rotate(-2deg); filter:brightness(10) drop-shadow(0 0 12px #C9A84C); }
+    100% { transform:translateX(0px) translateY(0px) rotate(0deg); filter:brightness(10) drop-shadow(0 0 4px #C9A84C); }
+  }
   @keyframes db-border-pulse {
     0%,100% { box-shadow: 0 0 0 0 rgba(201,168,76,0.25), inset 0 0 0 0 rgba(201,168,76,0) }
     50%     { box-shadow: 0 0 12px 3px rgba(201,168,76,0.35), inset 0 0 0 0 rgba(201,168,76,0) }
@@ -166,9 +173,16 @@ function AllFourOverlay({ onDone }) {
       alignItems: 'center', justifyContent: 'center',
       textAlign: 'center', padding: '0 32px',
     }}>
-      <div style={{ fontSize: 80, animation: 'db-pop 0.5s ease, db-glow 1.5s ease 0.4s infinite' }}>
-        🔥
-      </div>
+      <img
+        src="/pickupyourcross.png"
+        alt=""
+        style={{
+          width: 80, height: 80,
+          mixBlendMode: 'screen',
+          filter: 'drop-shadow(0 0 12px #C9A84C)',
+          animation: 'walkForward 1.2s ease-in-out infinite',
+        }}
+      />
       <h1 style={{ color: '#C9A84C', fontSize: 36, fontWeight: 900, margin: '24px 0 12px', letterSpacing: 2 }}>
         All four.
       </h1>
