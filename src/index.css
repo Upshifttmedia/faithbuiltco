@@ -321,9 +321,10 @@ textarea { resize: vertical; }
 
 /* ─── Section heading ──────────────────────────── */
 .section-heading {
+  font-family: 'Barlow Condensed', sans-serif;
   font-size: 0.78rem;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 3px;
   text-transform: uppercase;
   color: var(--text-muted);
   margin-bottom: -8px;

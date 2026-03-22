@@ -298,11 +298,9 @@ function PillarCheckCard({ pillar, commitment, confirmed, animating, onConfirm, 
   return (
     <div style={{
       display: 'flex', alignItems: 'flex-start', gap: 14,
-      background: confirmed
-        ? 'rgba(201,168,76,0.08)'
-        : 'rgba(255,255,255,0.03)',
+      background: confirmed ? 'rgba(201,168,76,0.08)' : '#1a1a1a',
       border: `1px solid ${confirmed ? 'rgba(201,168,76,0.3)' : 'rgba(255,255,255,0.07)'}`,
-      borderRadius: 14,
+      borderRadius: 12,
       padding: '16px 14px',
       marginBottom: 10,
       transition: 'background 0.3s ease, border-color 0.3s ease',
@@ -312,8 +310,10 @@ function PillarCheckCard({ pillar, commitment, confirmed, animating, onConfirm, 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
           <PillarIcon pillar={pillar.key} size={16} color="#C9A84C" />
           <p style={{
-            margin: 0, fontSize: 12, fontWeight: 700,
-            color: '#C9A84C', textTransform: 'uppercase', letterSpacing: 1,
+            margin: 0,
+            fontFamily: "'Barlow Condensed', sans-serif",
+            fontSize: 13, fontWeight: 700,
+            color: '#C9A84C', textTransform: 'uppercase', letterSpacing: '3px',
           }}>
             {pillar.label}
           </p>
@@ -363,9 +363,9 @@ function PillarPreviewCard({ pillar, text }) {
   return (
     <div style={{
       display: 'flex', alignItems: 'center', gap: 14,
-      background: 'rgba(255,255,255,0.02)',
+      background: '#1a1a1a',
       border: '1px solid rgba(255,255,255,0.05)',
-      borderRadius: 14,
+      borderRadius: 12,
       padding: '14px',
       marginBottom: 8,
       opacity: 0.6,
@@ -374,7 +374,7 @@ function PillarPreviewCard({ pillar, text }) {
         <PillarIcon pillar={pillar.key} size={20} color="#555" />
       </span>
       <div>
-        <p style={{ margin: '0 0 3px', fontSize: 11, color: '#666', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1 }}>
+        <p style={{ margin: '0 0 3px', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: '#666', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '3px' }}>
           {pillar.label}
         </p>
         <p style={{ margin: 0, color: '#555', fontSize: 13, lineHeight: 1.5, fontStyle: text ? 'normal' : 'italic' }}>
@@ -510,10 +510,10 @@ export default function Dashboard({ navigate, userId }) {
           <>
             {/* Greeting */}
             <div style={{ margin: '0 0 8px', paddingLeft: 16, animation: 'db-fade 0.4s ease' }}>
-              <p style={{ margin: 0, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 400, fontSize: 14, letterSpacing: '3px', textTransform: 'uppercase', color: '#fff', lineHeight: 1.2 }}>
+              <p style={{ margin: '0 0 4px', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 400, fontSize: 13, letterSpacing: '3px', textTransform: 'uppercase', color: '#888', lineHeight: 1 }}>
                 {getGreeting()}
               </p>
-              <p style={{ margin: 0, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 48, letterSpacing: '1px', color: '#fff', lineHeight: 1.05 }}>
+              <p style={{ margin: 0, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 36, letterSpacing: '1px', color: '#fff', lineHeight: 1.05 }}>
                 {displayName}.
               </p>
             </div>
@@ -569,10 +569,10 @@ export default function Dashboard({ navigate, userId }) {
 
             {/* Greeting above shield */}
             <div style={{ margin: '0 0 8px', paddingLeft: 16 }}>
-              <p style={{ margin: 0, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 400, fontSize: 14, letterSpacing: '3px', textTransform: 'uppercase', color: '#fff', lineHeight: 1.2 }}>
+              <p style={{ margin: '0 0 4px', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 400, fontSize: 13, letterSpacing: '3px', textTransform: 'uppercase', color: '#888', lineHeight: 1 }}>
                 {getGreeting()}
               </p>
-              <p style={{ margin: 0, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 48, letterSpacing: '1px', color: '#fff', lineHeight: 1.05 }}>
+              <p style={{ margin: 0, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 36, letterSpacing: '1px', color: '#fff', lineHeight: 1.05 }}>
                 {displayName}.
               </p>
             </div>
