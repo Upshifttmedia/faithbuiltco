@@ -398,6 +398,7 @@ export default function Dashboard({ navigate, userId }) {
   const [showReview, setShowReview]   = useState(false)
   const [editingPillar, setEditing]   = useState(null)   // pillar object being edited
   const [eveningTime, setEveningTime] = useState(null)   // "HH:MM" from push_subscriptions
+  const [morningTime, setMorningTime] = useState(null)   // "HH:MM" from push_subscriptions
 
   // Show toast when daily_commits fetch fails
   useEffect(() => {
@@ -410,18 +411,42 @@ export default function Dashboard({ navigate, userId }) {
     || user?.user_metadata?.display_name
     || 'Builder'
 
-  // Fetch this user's chosen evening notification time
+  // Fetch this user's chosen morning + evening notification times
   useEffect(() => {
     if (!userId) return
     supabase
       .from('push_subscriptions')
-      .select('evening_time')
+      .select('morning_time, evening_time')
       .eq('user_id', userId)
       .maybeSingle()
       .then(({ data }) => {
+        if (data?.morning_time) setMorningTime(data.morning_time)
         if (data?.evening_time) setEveningTime(data.evening_time)
       })
   }, [userId])
+
+  // Derive contextual CTA text + subtext for the morning phase button.
+  // Returns { label: string, subtext: string|null }
+  function getMorningCTA() {
+    const now        = new Date()
+    const nowMins    = now.getHours() * 60 + now.getMinutes()
+    const noonMins   = 12 * 60
+
+    // Parse evening cutoff (default 20:00 if no subscription)
+    const [ehh, emm] = (eveningTime ?? '20:00').split(':').map(Number)
+    const eveningMins = ehh * 60 + (emm || 0)
+
+    if (nowMins < noonMins) {
+      // Before noon → always "Begin Your Morning", no subtext
+      return { label: 'Begin Your Morning', subtext: null }
+    }
+    if (nowMins < eveningMins) {
+      // Noon → evening time
+      return { label: 'Begin Your Day', subtext: "It's not too late to show up." }
+    }
+    // After evening time
+    return { label: 'Begin Your Day', subtext: "The day isn't over until you commit." }
+  }
 
   // Derive phase from commit state
   const phase = !commit?.morning_done
@@ -519,17 +544,36 @@ export default function Dashboard({ navigate, userId }) {
             </div>
 
             {/* Primary CTA */}
-            <button
-              className="btn-primary btn-cta"
-              style={{
-                marginTop: 24, marginBottom: 24,
-                background: '#C9A84C', color: '#000',
-                fontWeight: 800, fontSize: 17, letterSpacing: 0.5,
-              }}
-              onClick={() => navigate('checkin')}
-            >
-              Begin Your Morning
-            </button>
+            {(() => {
+              const { label, subtext } = getMorningCTA()
+              return (
+                <div style={{ marginTop: 24, marginBottom: subtext ? 8 : 24 }}>
+                  <button
+                    className="btn-primary btn-cta"
+                    style={{
+                      width: '100%',
+                      background: '#C9A84C', color: '#000',
+                      fontFamily: "'Barlow Condensed', sans-serif",
+                      fontWeight: 700, fontSize: 17,
+                      letterSpacing: '1px', textTransform: 'uppercase',
+                    }}
+                    onClick={() => navigate('checkin')}
+                  >
+                    {label}
+                  </button>
+                  {subtext && (
+                    <p style={{
+                      margin: '8px 0 16px',
+                      fontSize: 12, color: '#888',
+                      fontStyle: 'italic', textAlign: 'center',
+                      lineHeight: 1.4,
+                    }}>
+                      {subtext}
+                    </p>
+                  )}
+                </div>
+              )
+            })()}
 
             {/* Shield + streak stats */}
             <ShieldWithStats commit={null} streak={streak} />
