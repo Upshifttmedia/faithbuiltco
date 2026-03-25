@@ -334,6 +334,21 @@ export default function EveningReflection({ navigate, userId }) {
         </div>
         <div style={sBottom}>
           <button style={sBtnGold} onClick={() => navigate('dashboard')}>See my streak →</button>
+          <a
+            href={`mailto:joel@upshiftt.com?subject=FaithBuilt Feedback&body=Hey Joel,%0D%0A%0D%0AWhat I love:%0D%0A%0D%0AWhat's missing or confusing:%0D%0A%0D%0AWould I pay $4.99/month:%0D%0A%0D%0AWould I invite a friend:%0D%0A`}
+            style={{
+              display: 'block',
+              marginTop: 16,
+              color: '#666',
+              fontSize: 12,
+              fontFamily: "'Georgia', 'Times New Roman', serif",
+              fontStyle: 'italic',
+              textAlign: 'center',
+              textDecoration: 'none',
+            }}
+          >
+            Share feedback on FaithBuilt →
+          </a>
         </div>
       </div>
     )

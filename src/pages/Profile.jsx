@@ -307,29 +307,18 @@ export default function Profile({ navigate }) {
         </button>
 
         {/* Share Feedback */}
-        <div style={{ marginTop: 24, marginBottom: 0 }}>
+        <div style={{ marginTop: 24, marginBottom: 0, textAlign: 'center' }}>
           <a
-            href="mailto:joel@upshiftt.com?subject=FaithBuilt%20Feedback&body=Hey%20Joel%2C%0A%0AHere%27s%20my%20feedback%20on%20FaithBuilt%3A%0A%0AWhat%20I%20love%3A%0A%0AWhat%27s%20missing%20or%20confusing%3A%0A%0AWould%20I%20pay%20%244.99%2Fmonth%3A%0A%0AWould%20I%20invite%20a%20friend%3A"
+            href={`mailto:joel@upshiftt.com?subject=FaithBuilt Feedback&body=Hey Joel,%0D%0A%0D%0AWhat I love:%0D%0A%0D%0AWhat's missing or confusing:%0D%0A%0D%0AWould I pay $4.99/month:%0D%0A%0D%0AWould I invite a friend:%0D%0A`}
             style={{
-              display: 'block',
-              width: '100%',
-              boxSizing: 'border-box',
-              background: '#1a1a1a',
-              border: '1px solid #C9A84C',
-              borderRadius: 8,
-              padding: 16,
               color: '#C9A84C',
-              fontFamily: "'Barlow Condensed', sans-serif",
-              fontWeight: 700,
-              fontSize: 14,
-              letterSpacing: '2px',
-              textTransform: 'uppercase',
-              textAlign: 'center',
+              fontSize: 13,
               textDecoration: 'none',
-              marginBottom: 8,
+              display: 'inline-block',
+              marginBottom: 6,
             }}
           >
-            Share Feedback 💬
+            Share feedback →
           </a>
           <p style={{
             fontFamily: "'Georgia', 'Times New Roman', serif",
