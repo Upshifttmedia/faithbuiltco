@@ -4,6 +4,7 @@ import { useNotifications } from './hooks/useNotifications'
 import { getLocalDate } from './lib/dateUtils'
 import SplashScreen from './components/SplashScreen'
 import AuthPage from './pages/AuthPage'
+import LandingPage from './pages/LandingPage'
 import Onboarding from './pages/Onboarding'
 import Dashboard from './pages/Dashboard'
 import MorningCommitment from './pages/MorningCommitment'
@@ -43,10 +44,12 @@ export default function App() {
     authEvent,
     resetPassword,
     markOnboardingDone,
+    signOut,
   } = useAuth()
 
   const [page, setPage]           = useState(getInitialPage)
   const [showDrift, setShowDrift] = useState(false)
+  const [showLanding, setShowLanding] = useState(true)
 
   // ── Splash: show for at least 2 s and while auth is resolving ─────
   const [splashReady, setSplashReady] = useState(false)
@@ -54,6 +57,11 @@ export default function App() {
     const t = setTimeout(() => setSplashReady(true), 2000)
     return () => clearTimeout(t)
   }, [])
+
+  // ── Reset landing flag when user signs out ────────────────────────
+  useEffect(() => {
+    if (!user) setShowLanding(true)
+  }, [user])
 
   // ── Drift detection: show if app not opened in 3+ days ────────────
   useEffect(() => {
@@ -102,7 +110,10 @@ export default function App() {
     return <SplashScreen />
   }
 
-  if (!user) return <AuthPage />
+  if (!user) {
+    if (showLanding) return <LandingPage onEnter={() => setShowLanding(false)} />
+    return <AuthPage />
+  }
 
   if (authEvent === 'PASSWORD_RECOVERY') {
     return <ResetPassword onResetPassword={resetPassword} />
