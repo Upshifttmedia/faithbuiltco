@@ -8,9 +8,9 @@ const WALK_FORWARD = `
     75%  { transform:translateX(3px)  translateY(-2px) rotate(-2deg); filter:brightness(10) drop-shadow(0 0 12px #C9A84C); }
     100% { transform:translateX(0px)  translateY(0px)  rotate(0deg);  filter:brightness(10) drop-shadow(0 0 4px #C9A84C); }
   }
-  @keyframes lp-pulse {
-    0%, 100% { opacity: 0.4; transform: translateY(0); }
-    50%       { opacity: 1;   transform: translateY(4px); }
+  @keyframes lp-bounce {
+    0%, 100% { transform: translateY(0px);  opacity: 0.6; }
+    50%       { transform: translateY(8px);  opacity: 1;   }
   }
 `
 
@@ -133,30 +133,36 @@ export default function LandingPage({ onEnter }) {
           FaithBuilt is the daily system<br />that ends the drift.
         </p>
 
-        {/* CTA */}
-        <button style={ctaBtn} onClick={onEnter}>
-          Begin the Work →
-        </button>
-
-        {/* Scroll indicator */}
+        {/* Gold gradient fade + scroll indicator pinned to hero bottom */}
         <div style={{
           position: 'absolute',
-          bottom: 28,
-          left: '50%',
-          transform: 'translateX(-50%)',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          paddingBottom: 32,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: 4,
+          gap: 6,
+          background: 'linear-gradient(to bottom, transparent, rgba(201,168,76,0.10))',
+          paddingTop: 48,
         }}>
           <span style={{
             color: '#C9A84C',
-            fontSize: 18,
-            animation: 'lp-pulse 1.8s ease-in-out infinite',
+            fontSize: 24,
+            lineHeight: 1,
+            animation: 'lp-bounce 1.4s ease-in-out infinite',
             display: 'block',
           }}>↓</span>
-          <span style={{ color: '#555', fontSize: 10, letterSpacing: '2px', textTransform: 'uppercase' }}>
-            scroll
+          <span style={{
+            fontFamily: "'Barlow Condensed', sans-serif",
+            fontWeight: 400,
+            fontSize: 12,
+            color: '#C9A84C',
+            letterSpacing: '2px',
+            textTransform: 'uppercase',
+          }}>
+            See how it works
           </span>
         </div>
       </section>
