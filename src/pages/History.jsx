@@ -37,14 +37,17 @@ function buildDateRange(n) {
 }
 
 // ── Status derivation ─────────────────────────────────────────────────
+// evening_done MUST be checked before morning_done so completed days
+// are never misclassified as "in-progress".
 function getStatus(commit) {
-  if (!commit) return 'drifted'
+  if (!commit || !commit.morning_done) return 'drifted'
   const confirmedCount = PILLARS.filter(p => commit[`${p.key}_confirmed`]).length
-  if (!commit.morning_done) return 'drifted'
-  if (!commit.evening_done) return 'in-progress'
-  if (confirmedCount >= 4)  return 'full'
-  if (confirmedCount === 3) return 'partial'
-  return 'fell-short'
+  if (commit.evening_done) {
+    if (confirmedCount >= 4)  return 'full'
+    if (confirmedCount === 3) return 'partial'
+    return 'fell-short'
+  }
+  return 'in-progress'
 }
 
 const STATUS_META = {
