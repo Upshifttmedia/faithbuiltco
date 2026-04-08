@@ -1,7 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useDailyCommit } from '../hooks/useDailyCommit'
+import { useBibleStudy }  from '../hooks/useBibleStudy'
 import Toast               from '../components/Toast'
 import { PillarIcon }      from '../components/PillarIcon'
+import OnboardingScreen    from '../components/BibleStudy/OnboardingScreen'
+import PassageScreen       from '../components/BibleStudy/PassageScreen'
+import SOAPScreen          from '../components/BibleStudy/SOAPScreen'
+import CompletionScreen    from '../components/BibleStudy/CompletionScreen'
 
 // ── Rotating hint texts (7 per pillar, indexed by day of week 0-6) ──
 const HINTS = {
@@ -58,6 +63,8 @@ const todayLabel = new Date().toLocaleDateString('en-US', {
 
 export default function MorningCommitment({ navigate, userId, identityStatement, onAllComplete }) {
   const { commit, loading, saveMorning } = useDailyCommit(userId)
+  const { settings, passage, loading: bsLoading, saveOnboarding, saveSOAP, markCarried } =
+    useBibleStudy(userId)
 
   const identity = identityStatement || 'I am a man of faith, discipline, and character.'
 
@@ -66,6 +73,13 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
   const [justCommitted, setJust] = useState(false)   // true only when commit happened this session
   const [saving, setSaving]      = useState(false)
   const [toast, setToast]        = useState(null)
+  // Bible Study sub-flow: null | 'onboarding' | 'passage' | 'soap' | 'complete'
+  const [bsScreen, setBsScreen]  = useState(null)
+
+  function openBibleStudy() {
+    if (bsLoading) return
+    setBsScreen(settings?.onboarding_complete ? 'passage' : 'onboarding')
+  }
 
   // Pre-fill & jump to committed view if already done today
   useEffect(() => {
@@ -178,6 +192,36 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
   return (
     <div className="app-shell" style={{ background: `linear-gradient(rgba(0,0,0,0.80), rgba(0,0,0,0.80)), url('/bg-morning.jpg') center / cover no-repeat` }}>
       {toast && <Toast {...toast} onDismiss={() => setToast(null)} />}
+
+      {/* ── Bible Study overlays ─────────────────────────────────────── */}
+      {bsScreen === 'onboarding' && (
+        <OnboardingScreen
+          saveOnboarding={saveOnboarding}
+          onComplete={() => setBsScreen('passage')}
+          onCancel={() => setBsScreen(null)}
+        />
+      )}
+      {bsScreen === 'passage' && (
+        <PassageScreen
+          passage={passage}
+          markCarried={markCarried}
+          onJournal={() => setBsScreen('soap')}
+          onCarried={() => setBsScreen(null)}
+          onBack={() => setBsScreen(null)}
+        />
+      )}
+      {bsScreen === 'soap' && (
+        <SOAPScreen
+          passage={passage}
+          saveSOAP={saveSOAP}
+          onComplete={() => setBsScreen('complete')}
+          onBack={() => setBsScreen('passage')}
+        />
+      )}
+      {bsScreen === 'complete' && (
+        <CompletionScreen onDone={() => setBsScreen(null)} />
+      )}
+
       <header className="top-bar">
         <button className="back-btn" onClick={() => navigate('dashboard')} aria-label="Back">
           ← Back
@@ -208,6 +252,36 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
                 placeholder={HINTS[p.key][DOW]}
                 rows={2}
               />
+              {/* Bible Study CTA — Faith pillar only */}
+              {p.key === 'faith' && (
+                <div style={{
+                  marginTop: 8,
+                  paddingTop: 8,
+                  borderTop: '1px solid rgba(255,255,255,0.06)',
+                  display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
+                }}>
+                  <button
+                    onClick={openBibleStudy}
+                    style={{
+                      background: 'none', border: 'none',
+                      color: '#C9A84C', fontSize: 13,
+                      fontFamily: "'Barlow Condensed', sans-serif",
+                      fontWeight: 700, letterSpacing: '1px',
+                      textTransform: 'uppercase',
+                      cursor: 'pointer', padding: 0,
+                    }}
+                  >
+                    Open in the Word today →
+                  </button>
+                  <p style={{
+                    fontFamily: "'Georgia', 'Times New Roman', serif",
+                    fontStyle: 'italic', fontSize: 11,
+                    color: '#555', margin: '3px 0 0',
+                  }}>
+                    "Open my eyes to see wondrous things." — Psalm 119:18
+                  </p>
+                </div>
+              )}
             </div>
           ))}
         </div>

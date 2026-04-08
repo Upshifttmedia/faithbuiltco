@@ -12,7 +12,15 @@
       "Bash(supabase link:*)",
       "Bash(git rm:*)",
       "Bash(is ready.\" / \"The day is almost done. Close the loop.\" /:*)",
-      "Bash(rm -f /Users/joelhopkins/Documents/faithbuiltco/.git/index.lock)"
+      "Bash(rm -f /Users/joelhopkins/Documents/faithbuiltco/.git/index.lock)",
+      "Bash(git remote:*)",
+      "Bash(gh auth:*)",
+      "Bash(mkdir -p ~/.ssh)",
+      "Bash(ssh-keyscan github.com)",
+      "Bash(~/.ssh/known_hosts)",
+      "Bash(git config:*)",
+      "Bash(security find-internet-password:*)",
+      "Bash(find /Users/joelhopkins/Documents/faithbuiltco/src -type f \\\\\\(-name *.ts -o -name *.tsx \\\\\\))"
     ]
   }
 }
