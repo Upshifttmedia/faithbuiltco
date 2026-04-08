@@ -27,7 +27,8 @@ export default function CompletionScreen({ onDone }) {
       display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center',
       textAlign: 'center',
-      padding: '0 32px',
+      paddingTop: 'max(24px, env(safe-area-inset-top))',
+      paddingLeft: 32, paddingRight: 32, paddingBottom: 0,
     }}>
       <style>{CSS}</style>
 

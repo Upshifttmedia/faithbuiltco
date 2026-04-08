@@ -69,10 +69,20 @@ export function useBibleStudy(userId) {
 
   // ── Advance to next chapter / book ───────────────────────────────────
   // Called internally after saveSOAP and markCarried.
+  // Always does a fresh DB read so we never use a stale closure value.
   async function advanceChapter() {
-    if (!userId || !settings) return
+    if (!userId) return
 
-    const { current_book, current_chapter } = settings
+    // Fresh read to avoid stale-closure issue
+    const { data: fresh } = await supabase
+      .from('bible_study_settings')
+      .select('current_book, current_chapter')
+      .eq('user_id', userId)
+      .single()
+
+    if (!fresh) return
+
+    const { current_book, current_chapter } = fresh
     const maxChapter = BOOK_CHAPTERS[current_book] ?? 1
 
     let nextBook    = current_book

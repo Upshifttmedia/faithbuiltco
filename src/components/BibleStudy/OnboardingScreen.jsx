@@ -71,7 +71,8 @@ export default function OnboardingScreen({ saveOnboarding, onComplete, onCancel 
       {/* Header */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '20px 20px 0',
+        paddingTop: 'max(48px, env(safe-area-inset-top))',
+        paddingLeft: 20, paddingRight: 20, paddingBottom: 0,
         flexShrink: 0,
       }}>
         <button
