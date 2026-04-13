@@ -49,13 +49,45 @@ const HINTS = {
 }
 
 const PILLARS = [
-  { key: 'faith',       icon: '✦', label: 'Faith' },
-  { key: 'body',        icon: '⚡', label: 'Body' },
-  { key: 'mind',        icon: '◈', label: 'Mind' },
-  { key: 'stewardship', icon: '◆', label: 'Stewardship' },
+  {
+    key:      'faith',
+    icon:     '✝',
+    label:    'Faith',
+    tagline:  'Walk with intention.',
+    bg:       '/images/pillars/faith-bg.png',
+    gradient: 'linear-gradient(165deg, rgba(13,13,13,0.85) 0%, rgba(26,20,0,0.75) 70%, rgba(38,28,0,0.65) 100%)',
+    zIndex:   40,
+  },
+  {
+    key:      'body',
+    icon:     '◎',
+    label:    'Body',
+    tagline:  'Honor the temple.',
+    bg:       '/images/pillars/body-bg.png',
+    gradient: 'linear-gradient(165deg, rgba(13,13,13,0.85) 0%, rgba(9,20,8,0.75) 70%, rgba(13,31,15,0.65) 100%)',
+    zIndex:   30,
+  },
+  {
+    key:      'mind',
+    icon:     '◈',
+    label:    'Mind',
+    tagline:  'Sharpen the iron.',
+    bg:       '/images/pillars/mind-bg.png',
+    gradient: 'linear-gradient(165deg, rgba(13,13,13,0.85) 0%, rgba(8,13,20,0.75) 70%, rgba(12,18,32,0.65) 100%)',
+    zIndex:   20,
+  },
+  {
+    key:      'stewardship',
+    icon:     '◇',
+    label:    'Stewardship',
+    tagline:  'Build what lasts.',
+    bg:       '/images/pillars/stewardship-bg.png',
+    gradient: 'linear-gradient(165deg, rgba(13,13,13,0.85) 0%, rgba(20,16,8,0.75) 70%, rgba(30,26,14,0.65) 100%)',
+    zIndex:   10,
+  },
 ]
 
-const DOW = new Date().getDay() // 0 = Sun … 6 = Sat
+const DOW = new Date().getDay()
 
 const todayLabel = new Date().toLocaleDateString('en-US', {
   weekday: 'long', month: 'long', day: 'numeric',
@@ -68,17 +100,27 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
 
   const identity = identityStatement || 'I am a man of faith, discipline, and character.'
 
-  const [texts, setTexts]        = useState({ faith: '', body: '', mind: '', stewardship: '' })
-  const [phase, setPhase]        = useState('form')  // 'form' | 'committed'
-  const [justCommitted, setJust] = useState(false)   // true only when commit happened this session
-  const [saving, setSaving]      = useState(false)
-  const [toast, setToast]        = useState(null)
-  // Bible Study sub-flow: null | 'onboarding' | 'passage' | 'soap' | 'complete'
-  const [bsScreen, setBsScreen]  = useState(null)
+  const [texts, setTexts]                       = useState({ faith: '', body: '', mind: '', stewardship: '' })
+  const [phase, setPhase]                       = useState('form')   // 'form' | 'committed'
+  const [justCommitted, setJust]                = useState(false)
+  const [saving, setSaving]                     = useState(false)
+  const [toast, setToast]                       = useState(null)
+  const [bsScreen, setBsScreen]                 = useState(null)     // null | 'onboarding' | 'passage' | 'soap' | 'complete'
+  const [expandedKey, setExpandedKey]           = useState(null)     // which pillar is open
+  const [confirmedPillars, setConfirmedPillars] = useState(new Set())
 
   function openBibleStudy() {
     if (bsLoading) return
     setBsScreen(settings?.onboarding_complete ? 'passage' : 'onboarding')
+  }
+
+  function toggleExpand(key) {
+    setExpandedKey(prev => (prev === key ? null : key))
+  }
+
+  function confirmPillar(key) {
+    setConfirmedPillars(prev => new Set([...prev, key]))
+    setExpandedKey(null)
   }
 
   // Pre-fill & jump to committed view if already done today
@@ -93,7 +135,7 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
     setPhase('committed')
   }, [loading, commit])  // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-dismiss the "Committed." splash after 2 s — only for this session's commit
+  // Auto-dismiss "Committed." splash after 2 s
   useEffect(() => {
     if (!justCommitted || phase !== 'committed') return
     const t = setTimeout(() => navigate('dashboard'), 2000)
@@ -117,7 +159,7 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
     return <div className="loader-screen"><div className="loader-icon">✦</div></div>
   }
 
-  // ── "Committed." full-screen splash (auto-dismisses after 2 s) ──────
+  // ── "Committed." full-screen splash ─────────────────────────────────
   if (phase === 'committed' && justCommitted) {
     return (
       <div style={{
@@ -130,6 +172,7 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
         <style>{`@keyframes mc-fade-in { from { opacity:0; transform:translateY(12px) } to { opacity:1; transform:translateY(0) } }`}</style>
         <div style={{ fontSize: 56, marginBottom: 24, animation: 'mc-fade-in 0.4s ease' }}>✦</div>
         <h1 style={{
+          fontFamily: "'Barlow Condensed', sans-serif",
           fontSize: 40, fontWeight: 800, letterSpacing: 3,
           color: '#C9A84C', margin: 0,
           animation: 'mc-fade-in 0.4s ease 0.1s both',
@@ -147,7 +190,7 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
     )
   }
 
-  // ── Already committed — static review (no auto-dismiss) ─────────────
+  // ── Already committed — static review ───────────────────────────────
   if (phase === 'committed') {
     return (
       <div className="app-shell">
@@ -188,10 +231,22 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
     )
   }
 
-  // ── Commitment form ──────────────────────────────────────────────────
+  // ── New atmospheric pillar layout ────────────────────────────────────
   return (
-    <div className="app-shell" style={{ background: `linear-gradient(rgba(0,0,0,0.80), rgba(0,0,0,0.80)), url('/bg-morning.jpg') center / cover no-repeat` }}>
-      {toast && <Toast {...toast} onDismiss={() => setToast(null)} />}
+    <div style={{
+      position: 'fixed', inset: 0,
+      background: '#0D0D0D',
+      display: 'flex', flexDirection: 'column',
+      overflow: 'hidden',
+    }}>
+      <style>{`
+        @keyframes pillar-in {
+          from { opacity: 0; transform: translateY(12px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .pillar-textarea::placeholder { color: rgba(255,255,255,0.22); font-style: italic; }
+        .pillar-textarea:focus { border-color: #3a3a3a !important; outline: none; }
+      `}</style>
 
       {/* ── Bible Study overlays ─────────────────────────────────────── */}
       {bsScreen === 'onboarding' && (
@@ -222,78 +277,261 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
         <CompletionScreen onDone={() => setBsScreen(null)} />
       )}
 
-      <header className="top-bar">
-        <button className="back-btn" onClick={() => navigate('dashboard')} aria-label="Back">
-          ← Back
-        </button>
-        <div className="brand"><span className="brand-mark">✦</span></div>
-      </header>
+      {toast && <Toast {...toast} onDismiss={() => setToast(null)} />}
 
-      <main className="main-content">
-        <p className="mc-date">{todayLabel}</p>
-
-        <div className="mc-identity">
-          <p className="mc-identity-text">{identity}</p>
+      {/* ── Header ───────────────────────────────────────────────────── */}
+      <div style={{
+        paddingTop: 'env(safe-area-inset-top)',
+        background: '#0D0D0D',
+        flexShrink: 0,
+        position: 'relative',
+        zIndex: 50,
+        borderBottom: '1px solid rgba(255,255,255,0.06)',
+      }}>
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '12px 20px 0',
+        }}>
+          <button
+            onClick={() => navigate('dashboard')}
+            style={{
+              background: 'none', border: 'none',
+              color: 'rgba(255,255,255,0.4)', fontSize: 13,
+              fontFamily: "'Barlow Condensed', sans-serif",
+              fontWeight: 700, letterSpacing: '0.12em',
+              textTransform: 'uppercase', cursor: 'pointer', padding: 0,
+            }}
+          >
+            ← Back
+          </button>
+          <span style={{ color: '#C9A84C', fontSize: 18 }}>✦</span>
         </div>
+        <div style={{ padding: '6px 28px 14px' }}>
+          <p style={{
+            fontFamily: "'Barlow Condensed', sans-serif",
+            fontSize: 11, fontWeight: 700,
+            color: 'rgba(255,255,255,0.28)',
+            letterSpacing: '0.15em', textTransform: 'uppercase',
+            margin: 0,
+          }}>{todayLabel}</p>
+          <p style={{
+            fontFamily: 'Georgia, serif',
+            fontStyle: 'italic', fontSize: 13,
+            color: 'rgba(255,255,255,0.38)',
+            margin: '4px 0 0', lineHeight: 1.5,
+          }}>{identity}</p>
+        </div>
+      </div>
 
-        <p className="mc-subheading">Show up as who God made you.</p>
+      {/* ── Scrollable pillar sections ────────────────────────────────── */}
+      <div style={{
+        flex: 1,
+        overflowY: 'auto',
+        WebkitOverflowScrolling: 'touch',
+        paddingBottom: 'calc(56px + env(safe-area-inset-bottom))',
+      }}>
+        {PILLARS.map((pillar, i) => {
+          const isExpanded  = expandedKey === pillar.key
+          const isConfirmed = confirmedPillars.has(pillar.key)
 
-        <div className="mc-fields">
-          {PILLARS.map(p => (
-            <div key={p.key} className="mc-field">
-              <div className="mc-field-header">
-                <span className="mc-field-icon"><PillarIcon pillar={p.key} size={20} color="#C9A84C" /></span>
-                <span className="mc-field-label">{p.label}</span>
-              </div>
-              <textarea
-                className="mc-field-textarea"
-                value={texts[p.key]}
-                onChange={e => setTexts(prev => ({ ...prev, [p.key]: e.target.value }))}
-                placeholder={HINTS[p.key][DOW]}
-                rows={2}
-              />
-              {/* Bible Study CTA — Faith pillar only */}
-              {p.key === 'faith' && (
+          return (
+            <div
+              key={pillar.key}
+              style={{
+                position: 'relative',
+                zIndex: pillar.zIndex,
+                backgroundImage: `${pillar.gradient}, url('${pillar.bg}')`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                borderLeft: isConfirmed ? '1px solid #C9A84C' : '1px solid transparent',
+                backgroundColor: isConfirmed ? 'rgba(201,168,76,0.04)' : 'transparent',
+                borderRadius: 0,
+                animation: `pillar-in 300ms ease-out ${i * 80}ms both`,
+              }}
+            >
+              {/* Collapsed header — always visible, tappable */}
+              <div
+                onClick={() => toggleExpand(pillar.key)}
+                style={{
+                  minHeight: '28vh',
+                  padding: '20px 28px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                }}
+              >
+                {/* Top row: pillar icon (left) + toggle (right) */}
                 <div style={{
-                  marginTop: 8,
-                  paddingTop: 8,
-                  borderTop: '1px solid rgba(255,255,255,0.06)',
-                  display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
                 }}>
-                  <button
-                    onClick={openBibleStudy}
-                    style={{
-                      background: 'none', border: 'none',
-                      color: '#C9A84C', fontSize: 13,
-                      fontFamily: "'Barlow Condensed', sans-serif",
-                      fontWeight: 700, letterSpacing: '1px',
-                      textTransform: 'uppercase',
-                      cursor: 'pointer', padding: 0,
-                    }}
-                  >
-                    Open in the Word today →
-                  </button>
-                  <p style={{
-                    fontFamily: "'Georgia', 'Times New Roman', serif",
-                    fontStyle: 'italic', fontSize: 11,
-                    color: '#555', margin: '3px 0 0',
+                  <span style={{
+                    fontSize: 16,
+                    color: 'rgba(255,255,255,0.35)',
+                    fontFamily: 'Georgia, serif',
+                    lineHeight: 1,
                   }}>
-                    "Open my eyes to see wondrous things." — Psalm 119:18
+                    {pillar.icon}
+                  </span>
+                  <span style={{
+                    fontSize: 22,
+                    color: isConfirmed ? '#C9A84C' : 'rgba(255,255,255,0.28)',
+                    lineHeight: 1,
+                    fontWeight: 300,
+                  }}>
+                    {isConfirmed ? '✓' : isExpanded ? '−' : '+'}
+                  </span>
+                </div>
+
+                {/* Bottom: name + tagline */}
+                <div>
+                  <h2 style={{
+                    fontFamily: "'Barlow Condensed', sans-serif",
+                    fontWeight: 700,
+                    fontSize: 56,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    color: '#FFFFFF',
+                    margin: 0,
+                    lineHeight: 1,
+                  }}>
+                    {pillar.label}
+                  </h2>
+                  <p style={{
+                    fontFamily: 'Georgia, serif',
+                    fontStyle: 'italic',
+                    fontSize: 13,
+                    color: 'rgba(255,255,255,0.45)',
+                    margin: '8px 0 0',
+                  }}>
+                    {pillar.tagline}
                   </p>
                 </div>
-              )}
-            </div>
-          ))}
-        </div>
+              </div>
 
+              {/* Expanded panel */}
+              <div style={{
+                overflow: 'hidden',
+                maxHeight: isExpanded ? 520 : 0,
+                transition: 'max-height 200ms ease-out',
+              }}>
+                <div style={{ padding: '0 28px 28px' }}>
+                  <textarea
+                    className="pillar-textarea"
+                    value={texts[pillar.key]}
+                    onChange={e => setTexts(prev => ({ ...prev, [pillar.key]: e.target.value }))}
+                    placeholder={HINTS[pillar.key][DOW]}
+                    rows={3}
+                    style={{
+                      width: '100%',
+                      boxSizing: 'border-box',
+                      background: '#111',
+                      border: '1px solid #2a2a2a',
+                      borderRadius: 0,
+                      color: '#E8E0D4',
+                      fontFamily: 'Georgia, serif',
+                      fontStyle: 'italic',
+                      fontSize: 14,
+                      lineHeight: 1.6,
+                      padding: '12px 14px',
+                      resize: 'none',
+                    }}
+                  />
+
+                  {/* Bible Study CTA — Faith pillar only */}
+                  {pillar.key === 'faith' && (
+                    <div style={{
+                      paddingTop: 12,
+                      marginTop: 4,
+                      marginBottom: 16,
+                      borderTop: '1px solid rgba(255,255,255,0.06)',
+                    }}>
+                      <button
+                        onClick={e => { e.stopPropagation(); openBibleStudy() }}
+                        style={{
+                          background: 'none', border: 'none',
+                          color: '#C9A84C', fontSize: 13,
+                          fontFamily: "'Barlow Condensed', sans-serif",
+                          fontWeight: 700, letterSpacing: '1px',
+                          textTransform: 'uppercase',
+                          cursor: 'pointer', padding: 0,
+                        }}
+                      >
+                        Open in the Word today →
+                      </button>
+                      <p style={{
+                        fontFamily: 'Georgia, serif',
+                        fontStyle: 'italic', fontSize: 11,
+                        color: '#555', margin: '3px 0 0',
+                      }}>
+                        "Open my eyes to see wondrous things." — Psalm 119:18
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Per-pillar confirm button */}
+                  <button
+                    onClick={e => { e.stopPropagation(); confirmPillar(pillar.key) }}
+                    style={{
+                      width: '100%',
+                      height: 48,
+                      background: '#C9A84C',
+                      color: '#0D0D0D',
+                      border: 'none',
+                      borderRadius: 0,
+                      fontFamily: "'Barlow Condensed', sans-serif",
+                      fontWeight: 700,
+                      fontSize: 15,
+                      letterSpacing: '0.1em',
+                      textTransform: 'uppercase',
+                      cursor: 'pointer',
+                      marginTop: pillar.key === 'faith' ? 0 : 16,
+                    }}
+                  >
+                    Confirm
+                  </button>
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* ── Fixed "Commit to Today" button ───────────────────────────── */}
+      <div style={{
+        position: 'fixed',
+        bottom: 0, left: 0, right: 0,
+        zIndex: 60,
+        paddingBottom: 'env(safe-area-inset-bottom)',
+        background: '#0D0D0D',
+      }}>
         <button
-          className="btn-primary mc-commit-btn"
           onClick={handleCommit}
           disabled={saving}
+          style={{
+            width: '100%',
+            height: 56,
+            background: saving ? '#9a7a2e' : '#C9A84C',
+            color: '#0D0D0D',
+            border: 'none',
+            borderRadius: 0,
+            fontFamily: "'Barlow Condensed', sans-serif",
+            fontWeight: 700,
+            fontSize: 17,
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+            cursor: saving ? 'default' : 'pointer',
+            transition: 'background 150ms ease',
+          }}
         >
-          {saving ? 'Committing…' : 'I commit to this day.'}
+          {saving ? 'Committing…' : 'Commit to Today'}
         </button>
-      </main>
+      </div>
     </div>
   )
 }
