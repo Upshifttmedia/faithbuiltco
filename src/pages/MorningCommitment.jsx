@@ -360,6 +360,8 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
           aiError={aiError}
           onAccept={handleAcceptWorkout}
           onSwap={handleSwapWorkout}
+          onBack={() => setBodyScreen(null)}
+          onSettings={() => setBodyScreen('onboarding')}
           swapUsed={swapUsed}
           accepting={accepting}
         />

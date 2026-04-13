@@ -10,10 +10,12 @@
  *   aiBrief    — generated brief string (null while loading)
  *   aiLoading  — bool
  *   aiError    — string | null
- *   onAccept   — () => void  called after acceptWorkout resolves
- *   onSwap     — () => void  swaps workout + re-triggers AI brief
- *   swapUsed   — bool        disables the swap button after one use
- *   accepting  — bool        loading state for accept button
+ *   onAccept    — () => void  called after acceptWorkout resolves
+ *   onSwap      — () => void  swaps workout + re-triggers AI brief
+ *   onBack      — () => void  closes overlay without saving anything
+ *   onSettings  — () => void  re-opens body onboarding from step 1
+ *   swapUsed    — bool        disables the swap button after one use
+ *   accepting   — bool        loading state for accept button
  */
 import { useEffect } from 'react'
 
@@ -50,6 +52,8 @@ export default function WorkoutCard({
   aiError,
   onAccept,
   onSwap,
+  onBack,
+  onSettings,
   swapUsed  = false,
   accepting = false,
 }) {
@@ -78,13 +82,23 @@ export default function WorkoutCard({
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           paddingBottom: 14,
         }}>
-          <p style={{
-            fontFamily: BC, fontWeight: 700, fontSize: 11,
-            letterSpacing: '4px', color: GOLD, textTransform: 'uppercase',
-            margin: 0,
-          }}>
-            Today's Work
-          </p>
+          <button
+            onClick={onBack}
+            style={{
+              background:    'none',
+              border:        'none',
+              color:         MUTED,
+              fontFamily:    BC,
+              fontWeight:    700,
+              fontSize:      11,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              cursor:        'pointer',
+              padding:       0,
+            }}
+          >
+            ← Today's Work
+          </button>
         </div>
       </div>
 
@@ -261,6 +275,23 @@ export default function WorkoutCard({
           }}
         >
           {swapUsed ? 'Showing alternative' : 'Give me something different'}
+        </button>
+
+        <button
+          onClick={onSettings}
+          style={{
+            width:         '100%',
+            paddingBottom: 12,
+            background:    'none',
+            border:        'none',
+            color:         '#555',
+            fontFamily:    SERIF,
+            fontStyle:     'italic',
+            fontSize:      12,
+            cursor:        'pointer',
+          }}
+        >
+          Change training settings →
         </button>
       </div>
     </div>
