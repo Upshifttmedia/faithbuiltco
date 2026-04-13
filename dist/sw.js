@@ -1,5 +1,5 @@
 // FaithBuilt Service Worker
-const VERSION = 'v2'
+const VERSION = 'v4'
 
 self.addEventListener('install', () => {
   self.skipWaiting()
@@ -9,56 +9,93 @@ self.addEventListener('activate', e => {
   e.waitUntil(self.clients.claim())
 })
 
-// Listen for messages from the app to trigger notifications
-self.addEventListener('message', e => {
-  const { type, title, body, tag, url } = e.data || {}
+// ── Web Push ─────────────────────────────────────────────────────────────
+self.addEventListener('push', (event) => {
+  if (!event.data) return
 
-  if (type === 'SHOW_NOTIFICATION') {
-    e.waitUntil(
-      self.registration.showNotification(title || 'FaithBuilt', {
-        body: body || 'Your alignment starts now. Open FaithBuilt.',
-        icon: '/favicon.svg',
-        badge: '/favicon.svg',
-        tag: tag || 'daily-reminder',
-        renotify: true,
-        requireInteraction: false,
-        data: { url: url || '/' },
-      })
-    )
+  const data = event.data.json()
+
+  const options = {
+    body: data.body || 'Time to show up.',
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    tag: data.tag || 'faithbuilt-reminder',
+    renotify: true,
+    requireInteraction: true,
+    data: {
+      url: data.url || '/'
+    },
+    actions: [
+      {
+        action: 'open',
+        title: 'Open FaithBuilt'
+      }
+    ]
   }
+
+  event.waitUntil(
+    self.registration.showNotification(data.title || 'FaithBuilt', options)
+  )
 })
 
-// Open (or focus) the app when user taps the notification
-self.addEventListener('notificationclick', e => {
-  e.notification.close()
-  const targetUrl = e.notification.data?.url || '/'
-  e.waitUntil(
-    self.clients
-      .matchAll({ type: 'window', includeUncontrolled: true })
-      .then(clientList => {
-        // If a window is already open, navigate it to the target URL
-        if (clientList.length > 0) {
-          const client = clientList[0]
-          client.navigate(targetUrl)
-          return client.focus()
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  const url = event.notification.data?.url || '/'
+  const fullUrl = self.location.origin + url
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then((clientList) => {
+        for (const client of clientList) {
+          if (client.url.includes(self.location.origin) && 'focus' in client) {
+            client.postMessage({ type: 'NAVIGATE', url: url })
+            return client.focus()
+          }
         }
-        return self.clients.openWindow(targetUrl)
+        return clients.openWindow(fullUrl)
       })
   )
 })
 
-// ── Web Push ─────────────────────────────────────────────────────────────
-// Receive a server-sent push payload and display a native notification.
-self.addEventListener('push', e => {
-  const data = e.data?.json() || {}
-  e.waitUntil(
-    self.registration.showNotification(data.title || 'FaithBuilt', {
-      body:      data.body || 'Your alignment starts now. Open FaithBuilt.',
-      icon:      '/icon-192.png',
-      badge:     '/icon-192.png',
-      tag:       data.tag  || 'faithbuilt-push',
-      renotify:  true,
-      data:      { url: data.url || '/' },
-    })
+// ── Network-first fetch strategy ──────────────────────────────────────────
+// Supabase API requests are NEVER cached — they always hit the network so
+// the app always sees fresh database state.
+// All other requests (app shell, assets) use network-first with a cache
+// fallback so the app still loads offline if the network is unavailable.
+const CACHE_NAME = 'faithbuilt-' + VERSION
+
+self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url)
+
+  // Pass Supabase calls straight through — no caching, no interception.
+  if (
+    url.hostname.includes('supabase.co') ||
+    url.hostname.includes('supabase.io')
+  ) {
+    event.respondWith(fetch(event.request))
+    return
+  }
+
+  // Non-GET requests (POST/PATCH/DELETE) go straight to network.
+  if (event.request.method !== 'GET') {
+    event.respondWith(fetch(event.request))
+    return
+  }
+
+  // Network-first for everything else (HTML, JS, CSS, images).
+  event.respondWith(
+    fetch(event.request)
+      .then(response => {
+        // Cache a clone of the successful response for offline fallback.
+        if (response.ok) {
+          const clone = response.clone()
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone))
+        }
+        return response
+      })
+      .catch(() =>
+        // Network failed — serve from cache if available.
+        caches.match(event.request)
+      )
   )
 })
