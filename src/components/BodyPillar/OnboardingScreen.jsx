@@ -172,7 +172,7 @@ export default function OnboardingScreen({ saveOnboarding, onComplete, onCancel 
             <h2 style={headingStyle}>What's your<br />weekly structure?</h2>
             <p style={subStyle}>
               {track === 'outdoor'
-                ? 'We'll map your outdoor sessions around this rhythm.'
+                ? "We'll map your outdoor sessions around this rhythm."
                 : 'Choose a split that matches your schedule.'}
             </p>
             {SPLITS.map(s => (
