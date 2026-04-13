@@ -449,7 +449,7 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
             >
               {/* Collapsed header — always visible, tappable */}
               <div
-                onClick={() => toggleExpand(pillar.key)}
+                onClick={() => pillar.key === 'body' ? openBodyPillar() : toggleExpand(pillar.key)}
                 style={{
                   minHeight: '28vh',
                   padding: '40px 28px',
@@ -510,7 +510,9 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
                       color:         isConfirmed ? '#C9A84C' : 'rgba(201,168,76,0.5)',
                       margin:        0,
                     }}>
-                      {isConfirmed ? '✓ Committed' : '+ Tap to Commit'}
+                      {pillar.key === 'body' && bodyLoading
+                        ? '· · ·'
+                        : isConfirmed ? '✓ Committed' : '+ Tap to Commit'}
                     </p>
                     {/* Show accepted workout type beneath BODY when confirmed */}
                     {pillar.key === 'body' && isConfirmed && (todayLog?.workout_type || todayWorkout?.type) && (
