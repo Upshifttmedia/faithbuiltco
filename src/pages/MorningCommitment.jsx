@@ -7,6 +7,10 @@ import OnboardingScreen    from '../components/BibleStudy/OnboardingScreen'
 import PassageScreen       from '../components/BibleStudy/PassageScreen'
 import SOAPScreen          from '../components/BibleStudy/SOAPScreen'
 import CompletionScreen    from '../components/BibleStudy/CompletionScreen'
+import faithBg         from '/images/pillars/faith-bg.PNG'
+import bodyBg          from '/images/pillars/body-bg.PNG'
+import mindBg          from '/images/pillars/mind-bg.PNG'
+import stewardshipBg   from '/images/pillars/stewardship-bg.PNG'
 
 // ── Rotating hint texts (7 per pillar, indexed by day of week 0-6) ──
 const HINTS = {
@@ -51,38 +55,38 @@ const HINTS = {
 const PILLARS = [
   {
     key:      'faith',
-    icon:     '✝',
+    icon:     '✝️',
     label:    'Faith',
     tagline:  'Walk with intention.',
-    bg:       '/images/pillars/faith-bg.png',
-    gradient: 'linear-gradient(165deg, rgba(13,13,13,0.85) 0%, rgba(26,20,0,0.75) 70%, rgba(38,28,0,0.65) 100%)',
+    bg:       faithBg,
+    gradient: 'linear-gradient(165deg, rgba(13,13,13,0.82) 0%, rgba(26,20,0,0.72) 100%)',
     zIndex:   40,
   },
   {
     key:      'body',
-    icon:     '◎',
+    icon:     '💪',
     label:    'Body',
     tagline:  'Honor the temple.',
-    bg:       '/images/pillars/body-bg.png',
-    gradient: 'linear-gradient(165deg, rgba(13,13,13,0.85) 0%, rgba(9,20,8,0.75) 70%, rgba(13,31,15,0.65) 100%)',
+    bg:       bodyBg,
+    gradient: 'linear-gradient(165deg, rgba(13,13,13,0.82) 0%, rgba(9,20,8,0.72) 100%)',
     zIndex:   30,
   },
   {
     key:      'mind',
-    icon:     '◈',
+    icon:     '📖',
     label:    'Mind',
     tagline:  'Sharpen the iron.',
-    bg:       '/images/pillars/mind-bg.png',
-    gradient: 'linear-gradient(165deg, rgba(13,13,13,0.85) 0%, rgba(8,13,20,0.75) 70%, rgba(12,18,32,0.65) 100%)',
+    bg:       mindBg,
+    gradient: 'linear-gradient(165deg, rgba(13,13,13,0.82) 0%, rgba(8,13,20,0.72) 100%)',
     zIndex:   20,
   },
   {
     key:      'stewardship',
-    icon:     '◇',
+    icon:     '🌱',
     label:    'Stewardship',
     tagline:  'Build what lasts.',
-    bg:       '/images/pillars/stewardship-bg.png',
-    gradient: 'linear-gradient(165deg, rgba(13,13,13,0.85) 0%, rgba(20,16,8,0.75) 70%, rgba(30,26,14,0.65) 100%)',
+    bg:       stewardshipBg,
+    gradient: 'linear-gradient(165deg, rgba(13,13,13,0.82) 0%, rgba(20,16,8,0.72) 100%)',
     zIndex:   10,
   },
 ]
@@ -369,12 +373,11 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
               >
                 {/* Pillar icon */}
                 <span style={{
-                  fontSize: 18,
-                  color: 'rgba(255,255,255,0.35)',
-                  fontFamily: 'Georgia, serif',
+                  fontSize: 28,
                   lineHeight: 1,
                   marginBottom: 12,
                   display: 'block',
+                  textAlign: 'center',
                 }}>
                   {pillar.icon}
                 </span>
