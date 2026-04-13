@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react'
-import { useDailyCommit } from '../hooks/useDailyCommit'
-import { useBibleStudy }  from '../hooks/useBibleStudy'
-import Toast               from '../components/Toast'
-import { PillarIcon }      from '../components/PillarIcon'
-import OnboardingScreen    from '../components/BibleStudy/OnboardingScreen'
-import PassageScreen       from '../components/BibleStudy/PassageScreen'
-import SOAPScreen          from '../components/BibleStudy/SOAPScreen'
-import CompletionScreen    from '../components/BibleStudy/CompletionScreen'
+import { useDailyCommit }  from '../hooks/useDailyCommit'
+import { useBibleStudy }   from '../hooks/useBibleStudy'
+import { useBodyStudy }    from '../hooks/useBodyStudy'
+import Toast                from '../components/Toast'
+import { PillarIcon }       from '../components/PillarIcon'
+import OnboardingScreen     from '../components/BibleStudy/OnboardingScreen'
+import PassageScreen        from '../components/BibleStudy/PassageScreen'
+import SOAPScreen           from '../components/BibleStudy/SOAPScreen'
+import CompletionScreen     from '../components/BibleStudy/CompletionScreen'
+import BodyOnboarding       from '../components/BodyPillar/OnboardingScreen'
+import WorkoutCard          from '../components/BodyPillar/WorkoutCard'
+import CustomLogScreen      from '../components/BodyPillar/CustomLogScreen'
 import faithBg         from '/images/pillars/faith-bg.png'
 import bodyBg          from '/images/pillars/body-bg.png'
 import mindBg          from '/images/pillars/mind-bg.png'
@@ -101,6 +105,19 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
   const { commit, loading, saveMorning } = useDailyCommit(userId)
   const { settings, passage, loading: bsLoading, saveOnboarding, saveSOAP, markCarried } =
     useBibleStudy(userId)
+  const {
+    settings:     bodySettings,
+    todayWorkout,
+    todayLog,
+    aiBrief,
+    aiLoading,
+    aiError,
+    loading:      bodyLoading,
+    saveOnboarding: saveBodyOnboarding,
+    acceptWorkout,
+    generateAIBrief,
+    swapWorkout,
+  } = useBodyStudy(userId)
 
   const identity = identityStatement || 'I am a man of faith, discipline, and character.'
 
@@ -110,6 +127,9 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
   const [saving, setSaving]                     = useState(false)
   const [toast, setToast]                       = useState(null)
   const [bsScreen, setBsScreen]                 = useState(null)     // null | 'onboarding' | 'passage' | 'soap' | 'complete'
+  const [bodyScreen, setBodyScreen]             = useState(null)     // null | 'onboarding' | 'workout' | 'custom'
+  const [swapUsed, setSwapUsed]                 = useState(false)
+  const [accepting, setAccepting]               = useState(false)
   const [expandedKey, setExpandedKey]           = useState(null)     // which pillar is open
   const [confirmedPillars, setConfirmedPillars] = useState(new Set())
 
@@ -117,6 +137,46 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
     if (bsLoading) return
     setBsScreen(settings?.onboarding_complete ? 'passage' : 'onboarding')
   }
+
+  function openBodyPillar() {
+    if (bodyLoading) return
+    if (!bodySettings?.onboarding_complete) {
+      setBodyScreen('onboarding')
+    } else if (bodySettings?.gym_mode === 'custom') {
+      setBodyScreen('custom')
+    } else {
+      setBodyScreen('workout')
+      // Trigger AI brief if not already generated
+      if (todayWorkout && !aiBrief && !aiLoading) {
+        generateAIBrief(todayWorkout)
+      }
+    }
+  }
+
+  async function handleAcceptWorkout() {
+    if (!todayWorkout) return
+    setAccepting(true)
+    const { error } = await acceptWorkout(todayWorkout)
+    setAccepting(false)
+    if (error) {
+      setToast({ message: "Couldn't save workout. Check your connection.", type: 'error' })
+      return
+    }
+    confirmPillar('body')
+    setBodyScreen(null)
+  }
+
+  function handleSwapWorkout() {
+    setSwapUsed(true)
+    swapWorkout()
+  }
+
+  // Re-generate AI brief when workout changes due to swap
+  useEffect(() => {
+    if (todayWorkout && bodyScreen === 'workout' && !aiLoading) {
+      generateAIBrief(todayWorkout)
+    }
+  }, [todayWorkout])  // eslint-disable-line react-hooks/exhaustive-deps
 
   function toggleExpand(key) {
     setExpandedKey(prev => (prev === key ? null : key))
@@ -281,6 +341,37 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
         <CompletionScreen onDone={() => setBsScreen(null)} />
       )}
 
+      {/* ── Body Pillar overlays ─────────────────────────────────────── */}
+      {bodyScreen === 'onboarding' && (
+        <BodyOnboarding
+          saveOnboarding={saveBodyOnboarding}
+          onComplete={() => {
+            setBodyScreen(bodySettings?.gym_mode === 'custom' ? 'custom' : 'workout')
+            if (todayWorkout) generateAIBrief(todayWorkout)
+          }}
+          onCancel={() => setBodyScreen(null)}
+        />
+      )}
+      {bodyScreen === 'workout' && todayWorkout && (
+        <WorkoutCard
+          workout={todayWorkout}
+          aiBrief={aiBrief}
+          aiLoading={aiLoading}
+          aiError={aiError}
+          onAccept={handleAcceptWorkout}
+          onSwap={handleSwapWorkout}
+          swapUsed={swapUsed}
+          accepting={accepting}
+        />
+      )}
+      {bodyScreen === 'custom' && (
+        <CustomLogScreen
+          acceptWorkout={acceptWorkout}
+          onComplete={() => { confirmPillar('body'); setBodyScreen(null) }}
+          onCancel={() => setBodyScreen(null)}
+        />
+      )}
+
       {toast && <Toast {...toast} onDismiss={() => setToast(null)} />}
 
       {/* ── Header ───────────────────────────────────────────────────── */}
@@ -409,17 +500,33 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
 
                 {/* Bottom affordance — hidden when expanded */}
                 {!isExpanded && (
-                  <p style={{
-                    fontFamily: "'Barlow Condensed', sans-serif",
-                    fontSize: 11,
-                    fontWeight: 700,
-                    letterSpacing: '0.16em',
-                    textTransform: 'uppercase',
-                    color: isConfirmed ? '#C9A84C' : 'rgba(201,168,76,0.5)',
-                    margin: '20px 0 0',
-                  }}>
-                    {isConfirmed ? '✓ Committed' : '+ Tap to Commit'}
-                  </p>
+                  <div style={{ marginTop: 20 }}>
+                    <p style={{
+                      fontFamily:    "'Barlow Condensed', sans-serif",
+                      fontSize:      11,
+                      fontWeight:    700,
+                      letterSpacing: '0.16em',
+                      textTransform: 'uppercase',
+                      color:         isConfirmed ? '#C9A84C' : 'rgba(201,168,76,0.5)',
+                      margin:        0,
+                    }}>
+                      {isConfirmed ? '✓ Committed' : '+ Tap to Commit'}
+                    </p>
+                    {/* Show accepted workout type beneath BODY when confirmed */}
+                    {pillar.key === 'body' && isConfirmed && (todayLog?.workout_type || todayWorkout?.type) && (
+                      <p style={{
+                        fontFamily:    "'Barlow Condensed', sans-serif",
+                        fontSize:      12,
+                        fontWeight:    700,
+                        letterSpacing: '0.08em',
+                        textTransform: 'uppercase',
+                        color:         'rgba(255,255,255,0.35)',
+                        margin:        '5px 0 0',
+                      }}>
+                        {todayLog?.workout_type ?? todayWorkout?.type}
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -479,6 +586,47 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
                         color: '#555', margin: '3px 0 0',
                       }}>
                         "Open my eyes to see wondrous things." — Psalm 119:18
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Body Pillar workout CTA — Body pillar only */}
+                  {pillar.key === 'body' && (
+                    <div style={{
+                      paddingTop:   12,
+                      marginTop:    4,
+                      marginBottom: 16,
+                      borderTop:    '1px solid rgba(255,255,255,0.06)',
+                    }}>
+                      <button
+                        onClick={e => { e.stopPropagation(); openBodyPillar() }}
+                        style={{
+                          background:    'none',
+                          border:        'none',
+                          color:         '#C9A84C',
+                          fontSize:      13,
+                          fontFamily:    "'Barlow Condensed', sans-serif",
+                          fontWeight:    700,
+                          letterSpacing: '1px',
+                          textTransform: 'uppercase',
+                          cursor:        'pointer',
+                          padding:       0,
+                        }}
+                      >
+                        {todayLog
+                          ? `${todayLog.workout_type} — view session →`
+                          : 'View today\'s workout →'}
+                      </button>
+                      <p style={{
+                        fontFamily: 'Georgia, serif',
+                        fontStyle:  'italic',
+                        fontSize:   11,
+                        color:      '#555',
+                        margin:     '3px 0 0',
+                      }}>
+                        {todayLog
+                          ? 'Log your completion in the evening reflection.'
+                          : 'Your body is the temple. Train it accordingly.'}
                       </p>
                     </div>
                   )}
