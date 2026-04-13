@@ -20,7 +20,9 @@
       "Bash(~/.ssh/known_hosts)",
       "Bash(git config:*)",
       "Bash(security find-internet-password:*)",
-      "Bash(find /Users/joelhopkins/Documents/faithbuiltco/src -type f \\\\\\(-name *.ts -o -name *.tsx \\\\\\))"
+      "Bash(find /Users/joelhopkins/Documents/faithbuiltco/src -type f \\\\\\(-name *.ts -o -name *.tsx \\\\\\))",
+      "Bash(ls -la /Users/joelhopkins/Documents/faithbuiltco/.git/index*)",
+      "Bash(ls /Users/joelhopkins/Documents/faithbuiltco/*.json /Users/joelhopkins/Documents/faithbuiltco/vite.config*)"
     ]
   }
 }
