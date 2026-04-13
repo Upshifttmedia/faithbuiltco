@@ -340,9 +340,10 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
               style={{
                 position: 'relative',
                 zIndex: pillar.zIndex,
-                backgroundImage: `${pillar.gradient}, url('${pillar.bg}')`,
+                backgroundImage: `${pillar.gradient}, url(${pillar.bg})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
                 boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
                 borderBottom: '1px solid rgba(255,255,255,0.06)',
                 borderLeft: isConfirmed ? '1px solid #C9A84C' : '1px solid transparent',
@@ -356,62 +357,67 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
                 onClick={() => toggleExpand(pillar.key)}
                 style={{
                   minHeight: '28vh',
-                  padding: '20px 28px',
+                  padding: '40px 28px',
                   display: 'flex',
                   flexDirection: 'column',
-                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textAlign: 'center',
                   cursor: 'pointer',
                   userSelect: 'none',
                 }}
               >
-                {/* Top row: pillar icon (left) + toggle (right) */}
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
+                {/* Pillar icon */}
+                <span style={{
+                  fontSize: 18,
+                  color: 'rgba(255,255,255,0.35)',
+                  fontFamily: 'Georgia, serif',
+                  lineHeight: 1,
+                  marginBottom: 12,
+                  display: 'block',
                 }}>
-                  <span style={{
-                    fontSize: 16,
-                    color: 'rgba(255,255,255,0.35)',
-                    fontFamily: 'Georgia, serif',
-                    lineHeight: 1,
-                  }}>
-                    {pillar.icon}
-                  </span>
-                  <span style={{
-                    fontSize: 22,
-                    color: isConfirmed ? '#C9A84C' : 'rgba(255,255,255,0.28)',
-                    lineHeight: 1,
-                    fontWeight: 300,
-                  }}>
-                    {isConfirmed ? '✓' : isExpanded ? '−' : '+'}
-                  </span>
-                </div>
+                  {pillar.icon}
+                </span>
 
-                {/* Bottom: name + tagline */}
-                <div>
-                  <h2 style={{
-                    fontFamily: "'Barlow Condensed', sans-serif",
-                    fontWeight: 700,
-                    fontSize: 56,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.08em',
-                    color: '#FFFFFF',
-                    margin: 0,
-                    lineHeight: 1,
-                  }}>
-                    {pillar.label}
-                  </h2>
+                {/* Pillar name */}
+                <h2 style={{
+                  fontFamily: "'Barlow Condensed', sans-serif",
+                  fontWeight: 700,
+                  fontSize: 56,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                  color: '#FFFFFF',
+                  margin: 0,
+                  lineHeight: 1,
+                }}>
+                  {pillar.label}
+                </h2>
+
+                {/* Tagline */}
+                <p style={{
+                  fontFamily: 'Georgia, serif',
+                  fontStyle: 'italic',
+                  fontSize: 13,
+                  color: 'rgba(255,255,255,0.45)',
+                  margin: '8px 0 0',
+                }}>
+                  {pillar.tagline}
+                </p>
+
+                {/* Bottom affordance — hidden when expanded */}
+                {!isExpanded && (
                   <p style={{
-                    fontFamily: 'Georgia, serif',
-                    fontStyle: 'italic',
-                    fontSize: 13,
-                    color: 'rgba(255,255,255,0.45)',
-                    margin: '8px 0 0',
+                    fontFamily: "'Barlow Condensed', sans-serif",
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: '0.16em',
+                    textTransform: 'uppercase',
+                    color: isConfirmed ? '#C9A84C' : 'rgba(201,168,76,0.5)',
+                    margin: '20px 0 0',
                   }}>
-                    {pillar.tagline}
+                    {isConfirmed ? '✓ Committed' : '+ Tap to Commit'}
                   </p>
-                </div>
+                )}
               </div>
 
               {/* Expanded panel */}
@@ -420,7 +426,7 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
                 maxHeight: isExpanded ? 520 : 0,
                 transition: 'max-height 200ms ease-out',
               }}>
-                <div style={{ padding: '0 28px 28px' }}>
+                <div style={{ padding: '0 24px 28px' }}>
                   <textarea
                     className="pillar-textarea"
                     value={texts[pillar.key]}
