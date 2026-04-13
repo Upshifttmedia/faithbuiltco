@@ -7,10 +7,10 @@ import OnboardingScreen    from '../components/BibleStudy/OnboardingScreen'
 import PassageScreen       from '../components/BibleStudy/PassageScreen'
 import SOAPScreen          from '../components/BibleStudy/SOAPScreen'
 import CompletionScreen    from '../components/BibleStudy/CompletionScreen'
-import faithBg         from '/images/pillars/faith-bg.PNG'
-import bodyBg          from '/images/pillars/body-bg.PNG'
-import mindBg          from '/images/pillars/mind-bg.PNG'
-import stewardshipBg   from '/images/pillars/stewardship-bg.PNG'
+import faithBg         from '/images/pillars/faith-bg.png'
+import bodyBg          from '/images/pillars/body-bg.png'
+import mindBg          from '/images/pillars/mind-bg.png'
+import stewardshipBg   from '/images/pillars/stewardship-bg.png'
 
 // ── Rotating hint texts (7 per pillar, indexed by day of week 0-6) ──
 const HINTS = {
@@ -55,7 +55,7 @@ const HINTS = {
 const PILLARS = [
   {
     key:      'faith',
-    icon:     '✝️',
+    icon:     '✝',
     label:    'Faith',
     tagline:  'Walk with intention.',
     bg:       faithBg,
