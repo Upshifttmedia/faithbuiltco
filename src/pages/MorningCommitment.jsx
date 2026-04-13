@@ -423,7 +423,7 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
         flex: 1,
         overflowY: 'auto',
         WebkitOverflowScrolling: 'touch',
-        paddingBottom: 'calc(56px + env(safe-area-inset-bottom))',
+        paddingBottom: 'calc(80px + env(safe-area-inset-bottom))',
       }}>
         {PILLARS.map((pillar, i) => {
           const isExpanded  = expandedKey === pillar.key
@@ -664,9 +664,9 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
       {/* ── Fixed "Commit to Today" button ───────────────────────────── */}
       <div style={{
         position: 'fixed',
-        bottom: 0, left: 0, right: 0,
+        bottom: 'calc(64px + env(safe-area-inset-bottom))',
+        left: 0, right: 0,
         zIndex: 60,
-        paddingBottom: 'env(safe-area-inset-bottom)',
         background: '#0D0D0D',
       }}>
         <button
