@@ -354,6 +354,10 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
           from { opacity: 0; transform: translateY(12px); }
           to   { opacity: 1; transform: translateY(0); }
         }
+        @keyframes commit-btn-in {
+          from { opacity: 0; transform: translateY(20px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
         .pillar-textarea::placeholder { color: rgba(255,255,255,0.22); font-style: italic; }
         .pillar-textarea:focus { border-color: #3a3a3a !important; outline: none; }
       `}</style>
@@ -506,7 +510,9 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
         flex: 1,
         overflowY: 'auto',
         WebkitOverflowScrolling: 'touch',
-        paddingBottom: 'calc(80px + env(safe-area-inset-bottom))',
+        paddingBottom: confirmedPillars.size === 4
+          ? 'calc(136px + env(safe-area-inset-bottom))'
+          : 'calc(80px + env(safe-area-inset-bottom))',
       }}>
         {PILLARS.map((pillar, i) => {
           const isExpanded  = expandedKey === pillar.key
@@ -798,38 +804,64 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
             </div>
           )
         })}
+
+        {/* ── Progress indicator — visible when 1–3 pillars confirmed ── */}
+        {confirmedPillars.size > 0 && confirmedPillars.size < 4 && (
+          <div style={{
+            display:        'flex',
+            gap:            6,
+            padding:        '20px 28px',
+            justifyContent: 'center',
+          }}>
+            {PILLARS.map(p => (
+              <div
+                key={p.key}
+                style={{
+                  flex:       1,
+                  height:     2,
+                  background: confirmedPillars.has(p.key) ? '#C9A84C' : '#222',
+                  transition: 'background 0.3s ease',
+                  borderRadius: 1,
+                }}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* ── Fixed "Commit to Today" button ───────────────────────────── */}
-      <div style={{
-        position: 'fixed',
-        bottom: 'calc(64px + env(safe-area-inset-bottom))',
-        left: 0, right: 0,
-        zIndex: 60,
-        background: '#0D0D0D',
-      }}>
-        <button
-          onClick={handleCommit}
-          disabled={saving}
-          style={{
-            width: '100%',
-            height: 56,
-            background: saving ? '#9a7a2e' : '#C9A84C',
-            color: '#0D0D0D',
-            border: 'none',
-            borderRadius: 0,
-            fontFamily: "'Barlow Condensed', sans-serif",
-            fontWeight: 700,
-            fontSize: 17,
-            letterSpacing: '0.12em',
-            textTransform: 'uppercase',
-            cursor: saving ? 'default' : 'pointer',
-            transition: 'background 150ms ease',
-          }}
-        >
-          {saving ? 'Committing…' : 'Commit to Today'}
-        </button>
-      </div>
+      {/* ── "Commit to Today" — only when all 4 pillars confirmed ──── */}
+      {confirmedPillars.size === 4 && (
+        <div style={{
+          position:  'fixed',
+          bottom:    'calc(64px + env(safe-area-inset-bottom))',
+          left: 0, right: 0,
+          zIndex:    60,
+          background: '#0D0D0D',
+          animation: 'commit-btn-in 300ms ease-out both',
+        }}>
+          <button
+            onClick={handleCommit}
+            disabled={saving}
+            style={{
+              width:         '100%',
+              height:        56,
+              background:    saving ? '#9a7a2e' : '#C9A84C',
+              color:         '#0D0D0D',
+              border:        'none',
+              borderRadius:  0,
+              fontFamily:    "'Barlow Condensed', sans-serif",
+              fontWeight:    700,
+              fontSize:      17,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              cursor:        saving ? 'default' : 'pointer',
+              transition:    'background 150ms ease',
+            }}
+          >
+            {saving ? 'Committing…' : 'Commit to Today'}
+          </button>
+        </div>
+      )}
     </div>
   )
 }

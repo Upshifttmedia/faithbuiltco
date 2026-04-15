@@ -17,9 +17,9 @@ const GOLD  = '#C9A84C'
 const BC    = "'Barlow Condensed', sans-serif"
 const SERIF = "'Georgia', 'Times New Roman', serif"
 const BONE  = '#E8E0D4'
-const CARD  = '#0d1018'
-const BORDER = '#1a2030'
-const MUTED = '#555'
+const CARD  = '#161616'
+const BORDER = '#2a2a2a'
+const MUTED = '#666'
 
 const CSS = `
   @keyframes mind-in {
@@ -92,7 +92,7 @@ export default function WordSelectScreen({ words, aiLoading, onSelect, onBack })
       {/* Word cards */}
       <div style={{
         flex:    1,
-        padding: '20px 20px 140px',
+        padding: '20px 20px calc(140px + env(safe-area-inset-bottom))',
         display: 'flex', flexDirection: 'column', gap: 10,
         animation: 'mind-in 0.3s ease',
       }}>
@@ -121,7 +121,7 @@ export default function WordSelectScreen({ words, aiLoading, onSelect, onBack })
                     fontSize:      32,
                     textTransform: 'uppercase',
                     letterSpacing: '0.06em',
-                    color:         isSelected ? BONE : '#8899aa',
+                    color:         BONE,
                     margin:        0,
                     lineHeight:    1,
                     transition:    'color 0.2s',
@@ -143,12 +143,12 @@ export default function WordSelectScreen({ words, aiLoading, onSelect, onBack })
 
       {/* Fixed footer */}
       <div style={{
-        position:      'fixed',
-        bottom:        0, left: 0, right: 0,
-        zIndex:        10,
-        background:    '#0D0D0D',
-        borderTop:     `1px solid ${BORDER}`,
-        paddingBottom: 'env(safe-area-inset-bottom)',
+        position:   'fixed',
+        bottom:     'calc(64px + env(safe-area-inset-bottom))',
+        left: 0, right: 0,
+        zIndex:     10,
+        background: '#0D0D0D',
+        borderTop:  `1px solid ${BORDER}`,
       }}>
         <button
           onClick={() => selected && onSelect(selected)}

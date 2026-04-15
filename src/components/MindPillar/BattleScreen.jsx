@@ -15,7 +15,7 @@ const GOLD   = '#C9A84C'
 const BC     = "'Barlow Condensed', sans-serif"
 const SERIF  = "'Georgia', 'Times New Roman', serif"
 const BONE   = '#E8E0D4'
-const BORDER = '#1a2030'
+const BORDER = '#2a2a2a'
 const MUTED  = '#555'
 
 const CSS = `

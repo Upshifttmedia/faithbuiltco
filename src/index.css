@@ -618,8 +618,8 @@ textarea { resize: vertical; }
   border-top: 1px solid var(--border);
   display: flex;
   align-items: stretch;
-  height: 64px;
-  padding-bottom: env(safe-area-inset-bottom, 0);
+  height: calc(64px + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
 }
 .nav-tab {
   flex: 1;

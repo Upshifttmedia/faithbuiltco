@@ -18,8 +18,8 @@ const GOLD   = '#C9A84C'
 const BC     = "'Barlow Condensed', sans-serif"
 const SERIF  = "'Georgia', 'Times New Roman', serif"
 const BONE   = '#E8E0D4'
-const CARD   = '#0d1018'
-const BORDER = '#1a2030'
+const CARD   = '#161616'
+const BORDER = '#2a2a2a'
 const MUTED  = '#555'
 
 const CATEGORIES = [
@@ -181,7 +181,7 @@ export default function WeaponScreen({ word, battle, onCommit, onBack, saving = 
                   <div
                     onClick={() => handleSuggestionSelect(s)}
                     style={{
-                      background:   isSelected ? '#111' : '#0a0d14',
+                      background:   isSelected ? '#1a1a1a' : '#161616',
                       border:       `1px solid ${isSelected ? GOLD : BORDER}`,
                       borderLeft:   `${isSelected ? 2 : 1}px solid ${isSelected ? GOLD : BORDER}`,
                       borderRadius: 0,
@@ -222,7 +222,7 @@ export default function WeaponScreen({ word, battle, onCommit, onBack, saving = 
                       style={{
                         width:        '100%',
                         boxSizing:    'border-box',
-                        background:   '#0c1018',
+                        background:   '#111',
                         border:       `1px solid ${BORDER}`,
                         borderTop:    'none',
                         borderRadius: 0,
