@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useDailyCommit }  from '../hooks/useDailyCommit'
 import { useBibleStudy }   from '../hooks/useBibleStudy'
 import { useBodyStudy }    from '../hooks/useBodyStudy'
+import { useMindBrief }    from '../hooks/useMindBrief'
 import Toast                from '../components/Toast'
 import { PillarIcon }       from '../components/PillarIcon'
 import OnboardingScreen     from '../components/BibleStudy/OnboardingScreen'
@@ -11,6 +12,10 @@ import CompletionScreen     from '../components/BibleStudy/CompletionScreen'
 import BodyOnboarding       from '../components/BodyPillar/OnboardingScreen'
 import WorkoutCard          from '../components/BodyPillar/WorkoutCard'
 import CustomLogScreen      from '../components/BodyPillar/CustomLogScreen'
+import WordSelectScreen     from '../components/MindPillar/WordSelectScreen'
+import BattleScreen         from '../components/MindPillar/BattleScreen'
+import WeaponScreen         from '../components/MindPillar/WeaponScreen'
+import ConfirmationScreen   from '../components/MindPillar/ConfirmationScreen'
 import faithBg         from '/images/pillars/faith-bg.png'
 import bodyBg          from '/images/pillars/body-bg.png'
 import mindBg          from '/images/pillars/mind-bg.png'
@@ -119,6 +124,15 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
     swapWorkout,
   } = useBodyStudy(userId)
 
+  const {
+    todayLog:   mindLog,
+    words:      mindWords,
+    loading:    mindLoading,
+    aiLoading:  mindAiLoading,
+    generateWords,
+    saveMindBrief,
+  } = useMindBrief(userId)
+
   const identity = identityStatement || 'I am a man of faith, discipline, and character.'
 
   const [texts, setTexts]                       = useState({ faith: '', body: '', mind: '', stewardship: '' })
@@ -128,6 +142,10 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
   const [toast, setToast]                       = useState(null)
   const [bsScreen, setBsScreen]                 = useState(null)     // null | 'onboarding' | 'passage' | 'soap' | 'complete'
   const [bodyScreen, setBodyScreen]             = useState(null)     // null | 'onboarding' | 'workout' | 'custom'
+  const [mindScreen, setMindScreen]             = useState(null)     // null | 'words' | 'battle' | 'weapon' | 'confirm'
+  const [mindWord, setMindWord]                 = useState(null)
+  const [mindBattle, setMindBattle]             = useState(null)
+  const [mindSaving, setMindSaving]             = useState(false)
   const [swapUsed, setSwapUsed]                 = useState(false)
   const [accepting, setAccepting]               = useState(false)
   const [expandedKey, setExpandedKey]           = useState(null)     // which pillar is open
@@ -169,6 +187,34 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
   function handleSwapWorkout() {
     setSwapUsed(true)
     swapWorkout()
+  }
+
+  function openMindPillar() {
+    if (mindLoading) return
+    // If already completed today, show confirmation summary
+    if (mindLog?.word) {
+      setMindWord(mindLog.word)
+      setMindBattle(mindLog.battle)
+      setMindScreen('confirm')
+      return
+    }
+    // Kick off word generation if not already started
+    if (mindWords.length === 0 && !mindAiLoading) {
+      generateWords()
+    }
+    setMindScreen('words')
+  }
+
+  async function handleMindCommit(weaponCategory, weapon) {
+    setMindSaving(true)
+    const { error } = await saveMindBrief(mindWord, mindBattle, weaponCategory, weapon)
+    setMindSaving(false)
+    if (error) {
+      setToast({ message: "Couldn't save your Mind Brief. Check your connection.", type: 'error' })
+      return
+    }
+    confirmPillar('mind')
+    setMindScreen('confirm')
   }
 
   // Re-generate AI brief when workout changes due to swap
@@ -374,6 +420,41 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
         />
       )}
 
+      {/* ── Mind Pillar overlays ─────────────────────────────────────── */}
+      {mindScreen === 'words' && (
+        <WordSelectScreen
+          words={mindWords}
+          aiLoading={mindAiLoading}
+          onSelect={word => { setMindWord(word); setMindScreen('battle') }}
+          onBack={() => setMindScreen(null)}
+        />
+      )}
+      {mindScreen === 'battle' && (
+        <BattleScreen
+          word={mindWord}
+          onNext={battle => { setMindBattle(battle); setMindScreen('weapon') }}
+          onBack={() => setMindScreen('words')}
+        />
+      )}
+      {mindScreen === 'weapon' && (
+        <WeaponScreen
+          word={mindWord}
+          battle={mindBattle}
+          onCommit={handleMindCommit}
+          onBack={() => setMindScreen('battle')}
+          saving={mindSaving}
+        />
+      )}
+      {mindScreen === 'confirm' && (
+        <ConfirmationScreen
+          word={mindLog?.word ?? mindWord}
+          battle={mindLog?.battle ?? mindBattle}
+          weaponCategory={mindLog?.weapon_category}
+          weapon={mindLog?.weapon}
+          onDone={() => setMindScreen(null)}
+        />
+      )}
+
       {toast && <Toast {...toast} onDismiss={() => setToast(null)} />}
 
       {/* ── Header ───────────────────────────────────────────────────── */}
@@ -451,7 +532,11 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
             >
               {/* Collapsed header — always visible, tappable */}
               <div
-                onClick={() => pillar.key === 'body' ? openBodyPillar() : toggleExpand(pillar.key)}
+                onClick={() => {
+                  if (pillar.key === 'body')  return openBodyPillar()
+                  if (pillar.key === 'mind')  return openMindPillar()
+                  toggleExpand(pillar.key)
+                }}
                 style={{
                   minHeight: '28vh',
                   padding: '40px 28px',
@@ -512,10 +597,23 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
                       color:         isConfirmed ? '#C9A84C' : 'rgba(201,168,76,0.5)',
                       margin:        0,
                     }}>
-                      {pillar.key === 'body' && bodyLoading
-                        ? '· · ·'
+                      {pillar.key === 'body' && bodyLoading ? '· · ·'
+                        : pillar.key === 'mind' && mindLoading ? '· · ·'
                         : isConfirmed ? '✓ Committed' : '+ Tap to Commit'}
                     </p>
+                    {/* Show chosen word beneath MIND when confirmed */}
+                    {pillar.key === 'mind' && isConfirmed && (mindLog?.word || mindWord) && (
+                      <p style={{
+                        fontFamily: 'Georgia, serif',
+                        fontStyle:  'italic',
+                        fontSize:   13,
+                        color:      'rgba(201,168,76,0.7)',
+                        margin:     '5px 0 0',
+                      }}>
+                        {mindLog?.word ?? mindWord}
+                      </p>
+                    )}
+
                     {/* Show accepted workout type beneath BODY when confirmed */}
                     {pillar.key === 'body' && isConfirmed && (todayLog?.workout_type || todayWorkout?.type) && (
                       <p style={{
@@ -590,6 +688,45 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
                         color: '#555', margin: '3px 0 0',
                       }}>
                         "Open my eyes to see wondrous things." — Psalm 119:18
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Mind Pillar brief CTA — Mind pillar only */}
+                  {pillar.key === 'mind' && (
+                    <div style={{
+                      paddingTop:   12,
+                      marginTop:    4,
+                      marginBottom: 16,
+                      borderTop:    '1px solid rgba(255,255,255,0.06)',
+                    }}>
+                      <button
+                        onClick={e => { e.stopPropagation(); openMindPillar() }}
+                        style={{
+                          background:    'none',
+                          border:        'none',
+                          color:         '#C9A84C',
+                          fontSize:      13,
+                          fontFamily:    "'Barlow Condensed', sans-serif",
+                          fontWeight:    700,
+                          letterSpacing: '1px',
+                          textTransform: 'uppercase',
+                          cursor:        'pointer',
+                          padding:       0,
+                        }}
+                      >
+                        {mindLog?.word ? `${mindLog.word} — view brief →` : 'Start your Mind Brief →'}
+                      </button>
+                      <p style={{
+                        fontFamily: 'Georgia, serif',
+                        fontStyle:  'italic',
+                        fontSize:   11,
+                        color:      '#555',
+                        margin:     '3px 0 0',
+                      }}>
+                        {mindLog?.word
+                          ? 'Your word, your battle, your weapon for today.'
+                          : 'Choose your word. Name your battle. Pick your weapon.'}
                       </p>
                     </div>
                   )}
