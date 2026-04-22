@@ -145,7 +145,7 @@ export default function EveningStewardshipScreen({
       {/* ── Body ───────────────────────────────────────────────────────────── */}
       <div style={{
         flex:    1,
-        padding: '24px 20px calc(100px + env(safe-area-inset-bottom))',
+        padding: '24px 20px calc(180px + env(safe-area-inset-bottom))',
       }}>
 
         {/* Morning intentions recap */}
@@ -253,7 +253,7 @@ export default function EveningStewardshipScreen({
         zIndex:        10,
         background:    '#0D0D0D',
         borderTop:     `1px solid ${BORDER}`,
-        paddingBottom: 'env(safe-area-inset-bottom)',
+        paddingBottom: 'calc(64px + env(safe-area-inset-bottom))',
       }}>
         <button
           onClick={handleSave}
