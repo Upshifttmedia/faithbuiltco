@@ -12,10 +12,13 @@ import CompletionScreen     from '../components/BibleStudy/CompletionScreen'
 import BodyOnboarding       from '../components/BodyPillar/OnboardingScreen'
 import WorkoutCard          from '../components/BodyPillar/WorkoutCard'
 import CustomLogScreen      from '../components/BodyPillar/CustomLogScreen'
-import WordSelectScreen     from '../components/MindPillar/WordSelectScreen'
-import BattleScreen         from '../components/MindPillar/BattleScreen'
-import WeaponScreen         from '../components/MindPillar/WeaponScreen'
-import ConfirmationScreen   from '../components/MindPillar/ConfirmationScreen'
+import WordSelectScreen          from '../components/MindPillar/WordSelectScreen'
+import BattleScreen              from '../components/MindPillar/BattleScreen'
+import WeaponScreen              from '../components/MindPillar/WeaponScreen'
+import ConfirmationScreen        from '../components/MindPillar/ConfirmationScreen'
+import { useStewardship }        from '../hooks/useStewardship'
+import LedgerScreen              from '../components/StewardshipPillar/LedgerScreen'
+import StewardshipConfirmation   from '../components/StewardshipPillar/ConfirmationScreen'
 import faithBg         from '/images/pillars/faith-bg.png'
 import bodyBg          from '/images/pillars/body-bg.png'
 import mindBg          from '/images/pillars/mind-bg.png'
@@ -133,6 +136,13 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
     saveMindBrief,
   } = useMindBrief(userId)
 
+  const {
+    todayLog:    stewardshipLog,
+    loading:     stewardshipLoading,
+    saveLedger,
+    getSuggestion,
+  } = useStewardship(userId)
+
   const identity = identityStatement || 'I am a man of faith, discipline, and character.'
 
   const [texts, setTexts]                       = useState({ faith: '', body: '', mind: '', stewardship: '' })
@@ -146,6 +156,9 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
   const [mindWord, setMindWord]                 = useState(null)
   const [mindBattle, setMindBattle]             = useState(null)
   const [mindSaving, setMindSaving]             = useState(false)
+  const [stewardshipScreen, setStewardshipScreen] = useState(null)  // null | 'ledger' | 'confirm'
+  const [stewardshipMoney,  setStewardshipMoney]  = useState(null)
+  const [stewardshipTime,   setStewardshipTime]   = useState(null)
   const [swapUsed, setSwapUsed]                 = useState(false)
   const [accepting, setAccepting]               = useState(false)
   const [expandedKey, setExpandedKey]           = useState(null)     // which pillar is open
@@ -215,6 +228,24 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
     }
     confirmPillar('mind')
     setMindScreen('confirm')
+  }
+
+  function openStewardshipPillar() {
+    if (stewardshipLoading) return
+    if (stewardshipLog?.money_intention) {
+      setStewardshipMoney(stewardshipLog.money_intention)
+      setStewardshipTime(stewardshipLog.time_intention)
+      setStewardshipScreen('confirm')
+      return
+    }
+    setStewardshipScreen('ledger')
+  }
+
+  function handleLedgerComplete(money, time) {
+    setStewardshipMoney(money)
+    setStewardshipTime(time)
+    confirmPillar('stewardship')
+    setStewardshipScreen('confirm')
   }
 
   // Re-generate AI brief when workout changes due to swap
@@ -459,6 +490,23 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
         />
       )}
 
+      {/* ── Stewardship Pillar overlays ──────────────────────────────────── */}
+      {stewardshipScreen === 'ledger' && (
+        <LedgerScreen
+          getSuggestion={getSuggestion}
+          saveLedger={saveLedger}
+          onComplete={handleLedgerComplete}
+          onBack={() => setStewardshipScreen(null)}
+        />
+      )}
+      {stewardshipScreen === 'confirm' && (
+        <StewardshipConfirmation
+          moneyIntention={stewardshipMoney ?? stewardshipLog?.money_intention}
+          timeIntention={stewardshipTime  ?? stewardshipLog?.time_intention}
+          onDone={() => setStewardshipScreen(null)}
+        />
+      )}
+
       {toast && <Toast {...toast} onDismiss={() => setToast(null)} />}
 
       {/* ── Header ───────────────────────────────────────────────────── */}
@@ -539,8 +587,9 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
               {/* Collapsed header — always visible, tappable */}
               <div
                 onClick={() => {
-                  if (pillar.key === 'body')  return openBodyPillar()
-                  if (pillar.key === 'mind')  return openMindPillar()
+                  if (pillar.key === 'body')        return openBodyPillar()
+                  if (pillar.key === 'mind')        return openMindPillar()
+                  if (pillar.key === 'stewardship') return openStewardshipPillar()
                   toggleExpand(pillar.key)
                 }}
                 style={{
@@ -603,8 +652,9 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
                       color:         isConfirmed ? '#C9A84C' : 'rgba(201,168,76,0.5)',
                       margin:        0,
                     }}>
-                      {pillar.key === 'body' && bodyLoading ? '· · ·'
-                        : pillar.key === 'mind' && mindLoading ? '· · ·'
+                      {pillar.key === 'body'        && bodyLoading        ? '· · ·'
+                        : pillar.key === 'mind'       && mindLoading        ? '· · ·'
+                        : pillar.key === 'stewardship'&& stewardshipLoading ? '· · ·'
                         : isConfirmed ? '✓ Committed' : '+ Tap to Commit'}
                     </p>
                     {/* Show chosen word beneath MIND when confirmed */}
@@ -617,6 +667,21 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
                         margin:     '5px 0 0',
                       }}>
                         {mindLog?.word ?? mindWord}
+                      </p>
+                    )}
+
+                    {/* Show first 4 words of money intention beneath STEWARDSHIP when confirmed */}
+                    {pillar.key === 'stewardship' && isConfirmed
+                      && (stewardshipLog?.money_intention || stewardshipMoney) && (
+                      <p style={{
+                        fontFamily: 'Georgia, serif',
+                        fontStyle:  'italic',
+                        fontSize:   13,
+                        color:      'rgba(201,168,76,0.7)',
+                        margin:     '5px 0 0',
+                      }}>
+                        {(stewardshipLog?.money_intention ?? stewardshipMoney)
+                          .split(' ').slice(0, 4).join(' ') + '…'}
                       </p>
                     )}
 
@@ -733,6 +798,47 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
                         {mindLog?.word
                           ? 'Your word, your battle, your weapon for today.'
                           : 'Choose your word. Name your battle. Pick your weapon.'}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Stewardship Pillar ledger CTA — Stewardship pillar only */}
+                  {pillar.key === 'stewardship' && (
+                    <div style={{
+                      paddingTop:   12,
+                      marginTop:    4,
+                      marginBottom: 16,
+                      borderTop:    '1px solid rgba(255,255,255,0.06)',
+                    }}>
+                      <button
+                        onClick={e => { e.stopPropagation(); openStewardshipPillar() }}
+                        style={{
+                          background:    'none',
+                          border:        'none',
+                          color:         '#C9A84C',
+                          fontSize:      13,
+                          fontFamily:    "'Barlow Condensed', sans-serif",
+                          fontWeight:    700,
+                          letterSpacing: '1px',
+                          textTransform: 'uppercase',
+                          cursor:        'pointer',
+                          padding:       0,
+                        }}
+                      >
+                        {stewardshipLog?.money_intention
+                          ? 'View today\'s ledger →'
+                          : 'Open the Ledger →'}
+                      </button>
+                      <p style={{
+                        fontFamily: 'Georgia, serif',
+                        fontStyle:  'italic',
+                        fontSize:   11,
+                        color:      '#555',
+                        margin:     '3px 0 0',
+                      }}>
+                        {stewardshipLog?.money_intention
+                          ? 'Two intentions committed.'
+                          : 'Name your money. Name your time.'}
                       </p>
                     </div>
                   )}
