@@ -13,9 +13,9 @@ import BodyOnboarding       from '../components/BodyPillar/OnboardingScreen'
 import WorkoutCard          from '../components/BodyPillar/WorkoutCard'
 import CustomLogScreen      from '../components/BodyPillar/CustomLogScreen'
 import WordSelectScreen          from '../components/MindPillar/WordSelectScreen'
-import BattleScreen              from '../components/MindPillar/BattleScreen'
-import WeaponScreen              from '../components/MindPillar/WeaponScreen'
+import MindBriefScreen           from '../components/MindPillar/MindBriefScreen'
 import ConfirmationScreen        from '../components/MindPillar/ConfirmationScreen'
+import { getWordCategory }       from '../data/mindWordLibrary'
 import { useStewardship }        from '../hooks/useStewardship'
 import LedgerScreen              from '../components/StewardshipPillar/LedgerScreen'
 import StewardshipConfirmation   from '../components/StewardshipPillar/ConfirmationScreen'
@@ -152,10 +152,9 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
   const [toast, setToast]                       = useState(null)
   const [bsScreen, setBsScreen]                 = useState(null)     // null | 'onboarding' | 'passage' | 'soap' | 'complete'
   const [bodyScreen, setBodyScreen]             = useState(null)     // null | 'onboarding' | 'workout' | 'custom'
-  const [mindScreen, setMindScreen]             = useState(null)     // null | 'words' | 'battle' | 'weapon' | 'confirm'
-  const [mindWord, setMindWord]                 = useState(null)
-  const [mindBattle, setMindBattle]             = useState(null)
-  const [mindSaving, setMindSaving]             = useState(false)
+  const [mindScreen,       setMindScreen]       = useState(null)  // null | 'words' | 'brief' | 'confirm'
+  const [mindWord,         setMindWord]         = useState(null)
+  const [mindWordCategory, setMindWordCategory] = useState(null)
   const [stewardshipScreen, setStewardshipScreen] = useState(null)  // null | 'ledger' | 'confirm'
   const [stewardshipMoney,  setStewardshipMoney]  = useState(null)
   const [stewardshipTime,   setStewardshipTime]   = useState(null)
@@ -218,14 +217,7 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
     setMindScreen('words')
   }
 
-  async function handleMindCommit(weaponCategory, weapon) {
-    setMindSaving(true)
-    const { error } = await saveMindBrief(mindWord, mindBattle, weaponCategory, weapon)
-    setMindSaving(false)
-    if (error) {
-      setToast({ message: "Couldn't save your Mind Brief. Check your connection.", type: 'error' })
-      return
-    }
+  function handleMindComplete(word, battle, weaponCategory, weapon) {
     confirmPillar('mind')
     setMindScreen('confirm')
   }
@@ -460,30 +452,27 @@ export default function MorningCommitment({ navigate, userId, identityStatement,
         <WordSelectScreen
           words={mindWords}
           aiLoading={mindAiLoading}
-          onSelect={word => { setMindWord(word); setMindScreen('battle') }}
+          onSelect={word => {
+            setMindWord(word)
+            setMindWordCategory(getWordCategory(word))
+            setMindScreen('brief')
+          }}
           onBack={() => setMindScreen(null)}
         />
       )}
-      {mindScreen === 'battle' && (
-        <BattleScreen
+      {mindScreen === 'brief' && (
+        <MindBriefScreen
           word={mindWord}
-          onNext={battle => { setMindBattle(battle); setMindScreen('weapon') }}
+          wordCategory={mindWordCategory}
+          saveMindBrief={saveMindBrief}
+          onComplete={handleMindComplete}
           onBack={() => setMindScreen('words')}
-        />
-      )}
-      {mindScreen === 'weapon' && (
-        <WeaponScreen
-          word={mindWord}
-          battle={mindBattle}
-          onCommit={handleMindCommit}
-          onBack={() => setMindScreen('battle')}
-          saving={mindSaving}
         />
       )}
       {mindScreen === 'confirm' && (
         <ConfirmationScreen
           word={mindLog?.word ?? mindWord}
-          battle={mindLog?.battle ?? mindBattle}
+          battle={mindLog?.battle}
           weaponCategory={mindLog?.weapon_category}
           weapon={mindLog?.weapon}
           onDone={() => setMindScreen(null)}
