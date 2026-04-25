@@ -52,45 +52,44 @@ export default function BattleScreen({ word, onNext, onBack }) {
         paddingTop:    'max(48px, env(safe-area-inset-top))',
         paddingLeft:   20,
         paddingRight:  20,
-        paddingBottom: 14,
+        paddingBottom: 16,
         flexShrink:    0,
         borderBottom:  `1px solid ${BORDER}`,
-        display:       'flex',
-        alignItems:    'center',
-        justifyContent:'space-between',
       }}>
+        {/* Back button row */}
         <button
           onClick={onBack}
           style={{
-            background: 'none', border: 'none',
-            color: MUTED, fontFamily: BC, fontWeight: 700,
-            fontSize: 11, letterSpacing: '0.12em',
+            background:    'none', border: 'none',
+            color:         MUTED, fontFamily: BC, fontWeight: 700,
+            fontSize:      11, letterSpacing: '0.12em',
             textTransform: 'uppercase', cursor: 'pointer', padding: 0,
+            display:       'block', marginBottom: 14,
           }}
         >
           ← Back
         </button>
 
-        {/* Chosen word — centered */}
+        {/* Chosen word — large, below back button */}
         <p style={{
           fontFamily:    BC,
           fontWeight:    700,
-          fontSize:      15,
-          letterSpacing: '0.12em',
+          fontSize:      28,
+          letterSpacing: '0.08em',
           textTransform: 'uppercase',
           color:         GOLD,
           margin:        0,
+          lineHeight:    1,
         }}>
           {word}
         </p>
-
-        <div style={{ width: 48 }} />
       </div>
 
       {/* Body */}
       <div style={{
-        flex:      1,
-        padding:   '36px 24px 120px',
+        flex:           1,
+        padding:        '36px 24px 0',
+        paddingBottom:  'calc(140px + env(safe-area-inset-bottom))',
         display:   'flex',
         flexDirection: 'column',
         animation: 'battle-in 0.3s ease',
@@ -155,14 +154,14 @@ export default function BattleScreen({ word, onNext, onBack }) {
         zIndex:        10,
         background:    '#0D0D0D',
         borderTop:     `1px solid ${BORDER}`,
-        paddingBottom: 'env(safe-area-inset-bottom)',
+        paddingBottom: 'calc(64px + env(safe-area-inset-bottom))',
       }}>
         <button
           onClick={() => canProceed && onNext(battle.trim())}
           disabled={!canProceed}
           style={{
             width:         '100%',
-            height:        56,
+            height:        52,
             background:    canProceed ? GOLD : 'rgba(201,168,76,0.18)',
             color:         '#0D0D0D',
             border:        'none',
